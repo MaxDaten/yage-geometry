@@ -23,7 +23,6 @@ data Face v = Face v v v v
 type Normal   = V3
 type Vertex   = V3
 type TexCoord = V2
-type Color    = V4
 
 --data Surface v = Surface [Face v]
 --  deriving ( Functor, Foldable, Traversable )
@@ -109,7 +108,7 @@ triangulate iter src    = iterate subdivide src !! iter
           fst3 (Triangle a _ _) = a
 
 
-calculateNormals :: (Floating v, Epsilon v) => Primitive (V3 v) -> NormalSmoothness -> Primitive (V3 v, V3 v)
+calculateNormals :: (Floating v, Epsilon v) => Primitive (Vertex v) -> NormalSmoothness -> Primitive (Vertex v, Normal v)
 calculateNormals Cone{..}        smooth  = Cone (fmap (normalCalculator smooth) _coneMantle) (fmap (normalCalculator FacetteNormals) _coneBase)
 calculateNormals Cube{..}        _       = Cube (fmap (, faceNormal _cubeRight) _cubeRight  )  ( fmap (, faceNormal _cubeLeft   ) _cubeLeft   ) 
                                                 (fmap (, faceNormal _cubeTop  ) _cubeTop    )  ( fmap (, faceNormal _cubeBottom ) _cubeBottom ) 
@@ -126,7 +125,7 @@ calculateNormals GeoSphere{..}   smooth  = GeoSphere $ fmap (normalCalculator sm
 calculateNormals _ _ = error "calculateNormals: unsupported primitive"
 
 
-normalCalculator :: (Epsilon v, Floating v) => NormalSmoothness -> (Triangle (V3 v) -> (Triangle (V3 v, V3 v)))
+normalCalculator :: (Epsilon v, Floating v) => NormalSmoothness -> (Triangle (Vertex v) -> (Triangle (Vertex v, Normal v)))
 normalCalculator SphericalNormals = \(Triangle a b c) -> Triangle (a, normalize a) (b, normalize b) (c, normalize c) 
 normalCalculator FacetteNormals   = \(Triangle a b c) -> let (n, _, _) = plainNormalForm c b a in Triangle (a, n) (b, n) (c, n)
 
