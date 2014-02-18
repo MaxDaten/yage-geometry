@@ -1,9 +1,19 @@
+{-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TupleSections      #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE RankNTypes   #-}
+{-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE DataKinds   #-}
+{-# LANGUAGE TypeFamilies   #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+--{-# LANGUAGE NoMonomorphismRestriction   #-}
 module Yage.Primitives.D3.Basic where
 
 import Yage.Prelude
 
+import Yage.Vertex
 import Data.List
 import Data.Foldable (Foldable)
 
@@ -20,13 +30,10 @@ data Face v = Face v v v v
   deriving ( Functor, Foldable, Traversable )
 
 
-type Normal   = V3
-type Vertex   = V3
-type TexCoord = V2
-
 --data Surface v = Surface [Face v]
 --  deriving ( Functor, Foldable, Traversable )
 
+data NormalSmoothness = FacetteNormals | SphericalNormals
 
 
 class HasTriangles p where
@@ -39,10 +46,37 @@ instance HasTriangles Triangle where
   triangles tri = [tri]
 
 
-faceNormal :: (Epsilon a, Floating a) => Face (V3 a) -> V3 a
-faceNormal (Face a b c _) = let (n, _, _) = plainNormalForm c b a in n
+instance HasTriangles Primitive where
+  triangles Cone{..}        = _coneMantle ++ _coneBase
+  triangles Cube{..}        = triangles _cubeRight ++ triangles _cubeLeft ++
+                              triangles _cubeTop   ++ triangles _cubeBottom ++
+                              triangles _cubeFront ++ triangles _cubeBack
+  triangles Icosahedron{..} = _icoTop ++ _icoMiddle ++ _icoBottom
+  triangles Pyramid{..}     = _pyramidMantle ++ _pyramidBase
+  triangles Quad{..}        = triangles _quadFace
+  triangles GeoSphere{..}   = _geoSphereTris 
+  triangles Grid{..}        = concat $ fmap triangles _gridSections
+  triangles _ = error "invalid triangles for Primitive"
 
 
+
+--calcFaceNormal :: (vn ~ (v ++ '[Normal3 nn a]), Epsilon a, Floating a, Implicit (Elem (Position3 pn a) v), Implicit (Elem (Position3 pn a) vn), Implicit (Elem (Normal3 nn a) vn)) => Face (Vertex v) -> Face (Vertex vn)
+addFaceNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
+              => Position3 pn a -> Normal3 nn a -> Face (Vertex v) -> Face (Vertex vn)
+addFaceNormal pos norm face@(Face a b c _) =
+  let (n, _, _) = plainNormalForm (rGet pos c) (rGet pos b) (rGet pos a)
+  in fmap (<+> norm =: n) face
+
+
+addTriangleNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
+                  => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Triangle (Vertex v) -> Triangle (Vertex vn)
+addTriangleNormal pos norm FacetteNormals t@(Triangle a b c) = 
+  let (n, _, _) = plainNormalForm (rGet pos c) (rGet pos b) (rGet pos a)
+  in fmap (<+> norm =: n) t
+addTriangleNormal pos norm SphericalNormals t@(Triangle a b c) =
+   Triangle (a <+> norm =: normalize (rGet pos a)) 
+            (b <+> norm =: normalize (rGet pos b)) 
+            (c <+> norm =: normalize (rGet pos c)) 
 
 flipTriangle :: Triangle v -> Triangle v
 flipTriangle (Triangle a b c) = Triangle c b a
@@ -52,6 +86,7 @@ flipFace (Face a b c d) = Face d c b a
 
 --flipSurface :: Surface v -> Surface v
 --flipSurface (Surface faces) = Surface $ fmap flipFace faces
+
 
 ---------------------------------------------------------------------------------------------------
 -- Primitives
@@ -86,10 +121,7 @@ data Primitive v =
     
     deriving ( Functor, Foldable, Traversable )
 
--- makeLenses ''Primitive
-
-data NormalSmoothness = FacetteNormals | SphericalNormals
-
+makeLenses ''Primitive
 
 cut :: (Functor f, Num (f a), Num a, Epsilon a, Metric f, Floating a) 
     => a -> Triangle (f a) -> [Triangle (f a)]
@@ -108,24 +140,28 @@ triangulate iter src    = iterate subdivide src !! iter
           fst3 (Triangle a _ _) = a
 
 
-calculateNormals :: (Floating v, Epsilon v) => Primitive (Vertex v) -> NormalSmoothness -> Primitive (Vertex v, Normal v)
-calculateNormals Cone{..}        smooth  = Cone (fmap (normalCalculator smooth) _coneMantle) (fmap (normalCalculator FacetteNormals) _coneBase)
-calculateNormals Cube{..}        _       = Cube (fmap (, faceNormal _cubeRight) _cubeRight  )  ( fmap (, faceNormal _cubeLeft   ) _cubeLeft   ) 
-                                                (fmap (, faceNormal _cubeTop  ) _cubeTop    )  ( fmap (, faceNormal _cubeBottom ) _cubeBottom ) 
-                                                (fmap (, faceNormal _cubeFront) _cubeFront  )  ( fmap (, faceNormal _cubeBack   ) _cubeBack   )
-calculateNormals Grid{..}        _       = let n = faceNormal (head _gridSections) 
-                                           in Grid $ map (fmap (,n)) _gridSections
-calculateNormals Icosahedron{..} smooth  = Icosahedron ( fmap (normalCalculator smooth) _icoTop )
-                                                       ( fmap (normalCalculator smooth) _icoMiddle )
-                                                       ( fmap (normalCalculator smooth) _icoBottom )
-calculateNormals Pyramid{..}     smooth  = Pyramid     ( fmap (normalCalculator smooth) _pyramidMantle )
-                                                       ( fmap (normalCalculator smooth) _pyramidBase )
-calculateNormals Quad{..}        _       = Quad      $ fmap (,faceNormal _quadFace) _quadFace
-calculateNormals GeoSphere{..}   smooth  = GeoSphere $ fmap (normalCalculator smooth) _geoSphereTris
-calculateNormals _ _ = error "calculateNormals: unsupported primitive"
-
-
-normalCalculator :: (Epsilon v, Floating v) => NormalSmoothness -> (Triangle (Vertex v) -> (Triangle (Vertex v, Normal v)))
-normalCalculator SphericalNormals = \(Triangle a b c) -> Triangle (a, normalize a) (b, normalize b) (c, normalize c) 
-normalCalculator FacetteNormals   = \(Triangle a b c) -> let (n, _, _) = plainNormalForm c b a in Triangle (a, n) (b, n) (c, n)
+calculateNormals :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v) 
+                 => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Primitive (Vertex v) -> Primitive (Vertex vn)
+calculateNormals pos norm smooth primitive = 
+  let triangleNorm = addTriangleNormal pos norm smooth
+      faceNorm     = addFaceNormal pos norm
+  in calc triangleNorm faceNorm primitive
+  where
+    calc triangleNorm _        Cone{..}        = Cone (fmap triangleNorm _coneMantle) (fmap triangleNorm _coneBase)
+    calc _            faceNorm Cube{..}        = Cube 
+                                                    ( faceNorm _cubeRight ) (faceNorm _cubeLeft   )
+                                                    ( faceNorm _cubeTop   ) (faceNorm _cubeBottom )
+                                                    ( faceNorm _cubeFront ) (faceNorm _cubeBack   )
+    calc triangleNorm _        Icosahedron{..} = Icosahedron 
+                                                    ( fmap triangleNorm _icoTop )
+                                                    ( fmap triangleNorm _icoMiddle )
+                                                    ( fmap triangleNorm _icoBottom )
+                                              
+    calc _            faceNorm Grid{..}        = Grid $ faceNorm <$> _gridSections
+    calc triangleNorm _        Pyramid{..}     = Pyramid 
+                                                    ( fmap triangleNorm _pyramidMantle )
+                                                    ( fmap triangleNorm _pyramidBase )
+    calc _            faceNorm Quad{..}        = Quad $ faceNorm _quadFace
+    calc triangleNorm _        GeoSphere{..}   = GeoSphere $ fmap triangleNorm _geoSphereTris
+calculateNormals _ _ _ _ = error "calculateNormals: unsupported primitive"
 

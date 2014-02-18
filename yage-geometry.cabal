@@ -28,6 +28,7 @@ library
   hs-source-dirs:      src
 
   exposed-modules:     Yage.Primitives
+                       Yage.Vertex
   other-modules:       Yage.Primitives.D3.Basic
                        Yage.Primitives.D3.Cone
                        Yage.Primitives.D3.Cube
@@ -42,7 +43,9 @@ library
 
                     , linear                  >= 1.3
                     , lens                    >= 3.9
+                    , vinyl                   >= 0.2
                     , text-format-simple      >= 1
+
 
 
   default-language:    Haskell2010
