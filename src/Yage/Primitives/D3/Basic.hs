@@ -8,7 +8,6 @@
 {-# LANGUAGE DataKinds   #-}
 {-# LANGUAGE TypeFamilies   #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
---{-# LANGUAGE NoMonomorphismRestriction   #-}
 module Yage.Primitives.D3.Basic where
 
 import Yage.Prelude
@@ -123,21 +122,21 @@ data Primitive v =
 
 makeLenses ''Primitive
 
-cut :: (Functor f, Num (f a), Num a, Epsilon a, Metric f, Floating a) 
-    => a -> Triangle (f a) -> [Triangle (f a)]
-cut r (Triangle a b c) = [Triangle a ab ac, Triangle b bc ab, Triangle c ac bc, Triangle ab bc ac]
-    where ab = hr *^ normalize (a + b)
-          bc = hr *^ normalize (b + c)
-          ac = hr *^ normalize (a + c)
+cut :: (Num a, Epsilon a, Floating a)
+    => a -> Position3 pn a -> Triangle (Vertex (P3 pn a)) -> [Triangle (Vertex (P3 pn a))]
+cut r pos (Triangle a b c) = [Triangle a ab ac, Triangle b bc ab, Triangle c ac bc, Triangle ab bc ac]
+    where ab = pos =: (hr *^ normalize (rGet pos a + rGet pos b))
+          bc = pos =: (hr *^ normalize (rGet pos b + rGet pos c))
+          ac = pos =: (hr *^ normalize (rGet pos a + rGet pos c))
           hr = r
 
  
-triangulate :: (Functor f, Num (f a), Num a, Epsilon a, Metric f, Floating a) 
-            => Int -> [Triangle (f a)] -> [Triangle (f a)]
-triangulate iter src    = iterate subdivide src !! iter
-    where subdivide     = concatMap cutR
-          cutR          = cut (norm . fst3 . head $ src)
-          fst3 (Triangle a _ _) = a
+triangulate :: (Epsilon a, Floating a) 
+            => Int -> Position3 pn a -> [Triangle (Vertex (P3 pn a))] -> [Triangle (Vertex (P3 pn a))]
+triangulate iter pos src = iterate subdivide src !! iter
+    where subdivide      = concatMap cutR
+          cutR           = cut (norm . fst3 . head $ src) pos
+          fst3 (Triangle a _ _) = rGet pos a
 
 
 calculateNormals :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v) 

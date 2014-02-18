@@ -7,20 +7,21 @@ import Data.List (drop, tail)
 import Yage.Math
 
 import Yage.Primitives.D3.Basic
+import Yage.Vertex
 
 
 -- | creates a grid along the xz plane with its center in origin and 1/1 dimension
 -- divisions along x and y. for a propper positioning of the center in origin, divisions
 -- sould be even
 -- TODO offset left
-grid :: (Floating v, Enum v) => V2 Int -> V2 v -> Primitive (V3 v)
+grid :: (Floating a, Enum a) => V2 Int -> V2 a -> Primitive (Vertex (P3 pn a))
 grid divs@(V2 xdiv zdiv) dim
   | xdiv < 1 || zdiv < 1 = error "invalid divisions"
   | otherwise = 
     let V2 xStep zStep   = 1.0 / (fromIntegral <$> divs)
         verts            = genVerts xStep zStep (dim / (-2.0))
         nextrow          = drop xdiv verts
-        faces            = [ Face a b c d | a <- verts, b <- nextrow, c <- tail nextrow, d <- tail verts ]
+        faces            = [ (position3 =:) <$> Face a b c d | a <- verts, b <- nextrow, c <- tail nextrow, d <- tail verts ]
     in Grid $ faces
   where
     genVerts :: (Floating v, Enum v) => v -> v -> V2 v -> [V3 v]

@@ -8,7 +8,6 @@ module Yage.Vertex
     ) where
 
 -- import Yage.Prelude
-import Prelude
 import Data.Vinyl
 import Linear
 

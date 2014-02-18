@@ -6,10 +6,11 @@ import Yage.Math
 import Data.List
 
 import Yage.Primitives.D3.Basic
+import Yage.Vertex
 
 
 
-icosahedron :: (Floating v, Enum v) => Float -> Primitive (V3 v)
+icosahedron :: (Floating a, Enum a) => Float -> Primitive (Vertex (P3 pn a))
 icosahedron radius = Icosahedron top middle bottom 
     where r             = realToFrac radius
           north         = V3 0   r  0
@@ -18,11 +19,11 @@ icosahedron radius = Icosahedron top middle bottom
           botv          = [ V3 (r * cos a * sin theta) ((-r) * cos theta) (r * sin a * sin theta)   | a <- init [ pi / 5, 3 * pi / 5 .. 2 * pi + pi / 5 ] ]
           V3 _ y _      = signorm $ V3 0 1 ((1 + sqrt 5)/2)
           theta         = acos y
-          top           = [ Triangle north a b | (a, b) <- zip topv (shift topv) ]
-          bottom        = [ Triangle south a b | (a, b) <- zip (shift botv) (botv) ]
+          top           = [ (position3 =:) <$> Triangle north a b | (a, b) <- zip topv (shift topv) ]
+          bottom        = [ (position3 =:) <$> Triangle south a b | (a, b) <- zip (shift botv) (botv) ]
           middleTop     = zipWith3 Triangle (shift topv) topv (shift botv)
           middleBottom  = zipWith3 Triangle botv (shift botv) (topv)
-          middle        = concat $ transpose [middleTop, middleBottom]
+          middle        = concat $ transpose [map ((position3 =:) <$>) middleTop, map ((position3 =:) <$>) middleBottom]
 
 
 --icosahedronMesh :: NormalSmoothness -> Float -> MeshData Vertex3P3N
