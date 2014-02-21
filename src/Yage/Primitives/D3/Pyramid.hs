@@ -6,7 +6,7 @@ import Data.List
 import Yage.Math
 
 import Yage.Primitives.D3.Basic
-import Yage.Vertex
+import Yage.Geometry.Vertex
 
 
 pyramid :: (Floating a, Enum a, Real a) => V3 a -> Primitive (Vertex (P3 pn a))

@@ -2,8 +2,8 @@
 {-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
-module Yage.Vertex
-    ( module Yage.Vertex
+module Yage.Geometry.Vertex
+    ( module Yage.Geometry.Vertex
     , module Data.Vinyl
     ) where
 
@@ -19,8 +19,8 @@ type Texture2  name a = name ::: V2 a
 type Color4    name a = name ::: V4 a
 type Vertex rs = PlainRec rs
 
-type P3 pn a      = '[ Position3 pn a ]
-type P3N3 pn nn a =  [ Position3 pn a, Normal3 nn a ]
+type P3 pn a      = '[Position3 pn a]
+type P3N3 pn nn a = [Position3 pn a, Normal3 nn a]
 
 position3 :: Position3 name a
 position3 = Field

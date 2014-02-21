@@ -7,7 +7,7 @@ import Data.List (drop, tail)
 import Yage.Math
 
 import Yage.Primitives.D3.Basic
-import Yage.Vertex
+import Yage.Geometry.Vertex
 
 
 -- | creates a grid along the xz plane with its center in origin and 1/1 dimension

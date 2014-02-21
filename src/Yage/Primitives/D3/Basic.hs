@@ -12,7 +12,7 @@ module Yage.Primitives.D3.Basic where
 
 import Yage.Prelude
 
-import Yage.Vertex
+import Yage.Geometry.Vertex
 import Data.List
 import Data.Foldable (Foldable)
 
@@ -57,6 +57,9 @@ instance HasTriangles Primitive where
   triangles Grid{..}        = concat $ fmap triangles _gridSections
   triangles _ = error "invalid triangles for Primitive"
 
+
+vertices :: [Triangle (Vertex rs)] -> [Vertex rs]
+vertices tri = tri^..traverse.traverse
 
 
 --calcFaceNormal :: (vn ~ (v ++ '[Normal3 nn a]), Epsilon a, Floating a, Implicit (Elem (Position3 pn a) v), Implicit (Elem (Position3 pn a) vn), Implicit (Elem (Normal3 nn a) vn)) => Face (Vertex v) -> Face (Vertex vn)

@@ -4,7 +4,7 @@ import Yage.Prelude
 
 import Linear
 import Yage.Primitives.D3.Basic
-import Yage.Vertex
+import Yage.Geometry.Vertex
 
 ---------------------------------------------------------------------------------------------------
 -- Primitives

@@ -5,7 +5,7 @@ import Yage.Math
 
 import Data.List
 
-import Yage.Vertex
+import Yage.Geometry.Vertex
 import Yage.Primitives.D3.Basic
 import Yage.Primitives.D3.Icosahedron
 

@@ -6,7 +6,7 @@ import Yage.Math
 import Data.List
 
 import Yage.Primitives.D3.Basic
-import Yage.Vertex
+import Yage.Geometry.Vertex
 
 
 
