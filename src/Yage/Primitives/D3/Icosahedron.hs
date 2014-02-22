@@ -3,7 +3,7 @@ module Yage.Primitives.D3.Icosahedron where
 import Yage.Prelude
 import Yage.Math
 
-import Data.List
+import Yage.Data.List (shift, init, zipWith3, concat, zip, map, transpose)
 
 import Yage.Primitives.D3.Basic
 import Yage.Geometry.Vertex

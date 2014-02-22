@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-name-shadowing    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TupleSections      #-}
@@ -23,10 +24,13 @@ import Yage.Math
 -- Basic Types
 
 data Triangle v = Triangle v v v
-  deriving ( Functor, Foldable, Traversable )
+  deriving ( Show, Functor, Foldable, Traversable )
 
 data Face v = Face v v v v
-  deriving ( Functor, Foldable, Traversable )
+  deriving ( Show, Functor, Foldable, Traversable )
+
+data Line v = Line v v
+  deriving ( Show, Functor, Foldable, Traversable )
 
 
 --data Surface v = Surface [Face v]
@@ -45,6 +49,7 @@ instance HasTriangles Triangle where
   triangles tri = [tri]
 
 
+
 instance HasTriangles Primitive where
   triangles Cone{..}        = _coneMantle ++ _coneBase
   triangles Cube{..}        = triangles _cubeRight ++ triangles _cubeLeft ++
@@ -57,9 +62,23 @@ instance HasTriangles Primitive where
   triangles Grid{..}        = concat $ fmap triangles _gridSections
   triangles _ = error "invalid triangles for Primitive"
 
+class HasLines p where
+  toLines :: Functor p => p v -> [Line v]
 
-vertices :: [Triangle (Vertex rs)] -> [Vertex rs]
-vertices tri = tri^..traverse.traverse
+instance HasLines Triangle where
+  toLines (Triangle a b c) = [Line a b, Line b c, Line c a]
+
+instance HasLines Face where
+  toLines (Face a b c d) = [Line a b, Line b c, Line c d, Line d a]
+
+instance HasLines Primitive where
+  toLines p = concatMap toLines $ triangles p
+
+
+vertices :: forall a (t :: * -> *) (t1 :: * -> *).
+            (Traversable t1, Traversable t) =>
+            t (t1 a) -> [a]
+vertices p = p^..traverse.traverse
 
 
 --calcFaceNormal :: (vn ~ (v ++ '[Normal3 nn a]), Epsilon a, Floating a, Implicit (Elem (Position3 pn a) v), Implicit (Elem (Position3 pn a) vn), Implicit (Elem (Normal3 nn a) vn)) => Face (Vertex v) -> Face (Vertex vn)
@@ -121,7 +140,7 @@ data Primitive v =
     
     | GeoSphere    { _geoSphereTris :: [Triangle v] }
     
-    deriving ( Functor, Foldable, Traversable )
+    deriving ( Show, Functor, Foldable, Traversable )
 
 makeLenses ''Primitive
 
@@ -145,25 +164,25 @@ triangulate iter pos src = iterate subdivide src !! iter
 calculateNormals :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v) 
                  => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Primitive (Vertex v) -> Primitive (Vertex vn)
 calculateNormals pos norm smooth primitive = 
-  let triangleNorm = addTriangleNormal pos norm smooth
+  let triangleNorm = addTriangleNormal pos norm
       faceNorm     = addFaceNormal pos norm
   in calc triangleNorm faceNorm primitive
   where
-    calc triangleNorm _        Cone{..}        = Cone (fmap triangleNorm _coneMantle) (fmap triangleNorm _coneBase)
+    calc triangleNorm _        Cone{..}        = Cone (fmap (triangleNorm smooth) _coneMantle) (fmap (triangleNorm FacetteNormals) _coneBase)
     calc _            faceNorm Cube{..}        = Cube 
                                                     ( faceNorm _cubeRight ) (faceNorm _cubeLeft   )
                                                     ( faceNorm _cubeTop   ) (faceNorm _cubeBottom )
                                                     ( faceNorm _cubeFront ) (faceNorm _cubeBack   )
     calc triangleNorm _        Icosahedron{..} = Icosahedron 
-                                                    ( fmap triangleNorm _icoTop )
-                                                    ( fmap triangleNorm _icoMiddle )
-                                                    ( fmap triangleNorm _icoBottom )
+                                                    ( fmap (triangleNorm smooth) _icoTop )
+                                                    ( fmap (triangleNorm smooth) _icoMiddle )
+                                                    ( fmap (triangleNorm smooth) _icoBottom )
                                               
     calc _            faceNorm Grid{..}        = Grid $ faceNorm <$> _gridSections
     calc triangleNorm _        Pyramid{..}     = Pyramid 
-                                                    ( fmap triangleNorm _pyramidMantle )
-                                                    ( fmap triangleNorm _pyramidBase )
+                                                    ( fmap (triangleNorm smooth) _pyramidMantle )
+                                                    ( fmap (triangleNorm smooth) _pyramidBase )
     calc _            faceNorm Quad{..}        = Quad $ faceNorm _quadFace
-    calc triangleNorm _        GeoSphere{..}   = GeoSphere $ fmap triangleNorm _geoSphereTris
+    calc triangleNorm _        GeoSphere{..}   = GeoSphere $ fmap (triangleNorm smooth) _geoSphereTris
 calculateNormals _ _ _ _ = error "calculateNormals: unsupported primitive"
 

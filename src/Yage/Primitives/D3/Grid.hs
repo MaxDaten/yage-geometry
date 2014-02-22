@@ -1,8 +1,10 @@
+{-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE PackageImports #-}
 module Yage.Primitives.D3.Grid where
 
 import Yage.Prelude hiding (Index)
 
-import Data.List (drop, tail)
+import Yage.Data.List (tail, chunksOf, concat, init)
 
 import Yage.Math
 
@@ -20,13 +22,14 @@ grid divs@(V2 xdiv zdiv) dim
   | otherwise = 
     let V2 xStep zStep   = 1.0 / (fromIntegral <$> divs)
         verts            = genVerts xStep zStep (dim / (-2.0))
-        nextrow          = drop xdiv verts
-        faces            = [ (position3 =:) <$> Face a b c d | a <- verts, b <- nextrow, c <- tail nextrow, d <- tail verts ]
+        rows             = chunksOf (xdiv+1) verts
+        faces            = concat $ [ rowFaces r n | r <- init rows | n <- tail rows ]
     in Grid $ faces
   where
+    rowFaces row nextrow = [ (position3 =:) <$> Face a b c d | a <- init row | b <- init nextrow | c <- tail nextrow | d <- tail row ]
     genVerts :: (Floating v, Enum v) => v -> v -> V2 v -> [V3 v]
-    genVerts xStep zStep (V2 left back) =
-          [ V3 (left + x * xStep) 0.0 (back + z * zStep)  
-          | z <- [ 0.0 .. fromIntegral zdiv ]
-          , x <- [ 0.0 .. fromIntegral xdiv ]
+    genVerts xStep zStep (V2 left back) = 
+          [ V3 (left + (fromIntegral x) * xStep) 0.0 (back + (fromIntegral z) * zStep)  
+          | z <- [ 0 .. zdiv ]
+          , x <- [ 0 .. xdiv ]
           ] -- x runs first

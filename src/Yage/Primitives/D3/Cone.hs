@@ -2,7 +2,7 @@ module Yage.Primitives.D3.Cone where
 
 import Yage.Prelude
 
-import Data.List
+import Yage.Data.List (shift, init, zip)
 import Yage.Math hiding (height)
 
 import Yage.Primitives.D3.Basic
