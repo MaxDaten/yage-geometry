@@ -71,6 +71,8 @@ addFaceNormal pos norm face@(Face a b c _) =
   in fmap (<+> norm =: n) face
 
 
+
+
 addTriangleNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
                   => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Triangle (Vertex v) -> Triangle (Vertex vn)
 addTriangleNormal pos norm FacetteNormals t@(Triangle a b c) = 
@@ -81,11 +83,17 @@ addTriangleNormal pos norm SphericalNormals t@(Triangle a b c) =
             (b <+> norm =: normalize (rGet pos b)) 
             (c <+> norm =: normalize (rGet pos c)) 
 
+
+
 flipTriangle :: Triangle v -> Triangle v
 flipTriangle (Triangle a b c) = Triangle c b a
 
+
+
 flipFace :: Face v -> Face v
 flipFace (Face a b c d) = Face d c b a
+
+
 
 cut :: (Num a, Epsilon a, Floating a)
     => a -> Position3 pn a -> Triangle (Vertex (P3 pn a)) -> [Triangle (Vertex (P3 pn a))]
