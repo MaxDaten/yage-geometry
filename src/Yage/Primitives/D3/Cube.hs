@@ -6,6 +6,7 @@ import Yage.Prelude hiding (Index)
 import Linear (V3(..), _x, _y, _z)
 import Yage.Primitives.D3.Basic
 import Yage.Geometry.Vertex
+import Yage.Geometry.Elements
 
 ---------------------------------------------------------------------------------------------------
 -- Primitives

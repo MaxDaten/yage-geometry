@@ -6,6 +6,7 @@ module Yage.Primitives
   , module Icosahedron
   , module Cone
   , module Pyramid
+  , module Elems
   , module Basic
   ) where
 
@@ -17,3 +18,5 @@ import Yage.Primitives.D3.Sphere       as Sphere
 import Yage.Primitives.D3.Icosahedron  as Icosahedron
 import Yage.Primitives.D3.Cone         as Cone
 import Yage.Primitives.D3.Pyramid      as Pyramid
+
+import Yage.Geometry.Elements          as Elems

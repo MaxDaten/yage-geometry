@@ -7,6 +7,7 @@ import Yage.Math hiding (height)
 
 import Yage.Primitives.D3.Basic
 import Yage.Geometry.Vertex
+import Yage.Geometry.Elements
 
 cone :: (Floating a, Enum a) => Float -> Float -> Int -> Primitive (Vertex (P3 pn a))
 cone radius height divs =

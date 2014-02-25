@@ -43,3 +43,7 @@ color4    = Field
 --instance (Implicit (Elem (Normal3 nn a) v))  => HasNormal nn a v where {}
 
 
+data VertexData pn nn tn a =
+      Position3 (pn ::: V3 a)
+    | Normal3   (nn ::: V3 a)
+    | Texture2  (tn ::: V3 a)

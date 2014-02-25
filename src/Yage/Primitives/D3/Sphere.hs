@@ -5,10 +5,10 @@ import Yage.Math
 
 import Data.List
 
-import Yage.Geometry.Vertex
 import Yage.Primitives.D3.Basic
 import Yage.Primitives.D3.Icosahedron
-
+import Yage.Geometry.Vertex
+import Yage.Geometry.Elements
 
 geoSphere :: (Floating a, Enum a, Epsilon a) 
           => Int -> Float -> Primitive (Vertex (P3 pn a))

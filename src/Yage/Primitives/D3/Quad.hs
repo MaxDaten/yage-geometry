@@ -5,6 +5,7 @@ import Yage.Prelude
 import Linear
 import Yage.Primitives.D3.Basic
 import Yage.Geometry.Vertex
+import Yage.Geometry.Elements
 
 ---------------------------------------------------------------------------------------------------
 -- Primitives

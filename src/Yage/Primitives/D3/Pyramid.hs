@@ -7,7 +7,7 @@ import Yage.Math
 
 import Yage.Primitives.D3.Basic
 import Yage.Geometry.Vertex
-
+import Yage.Geometry.Elements
 
 pyramid :: (Floating a, Enum a, Real a) => V3 a -> Primitive (Vertex (P3 pn a))
 pyramid dim = 

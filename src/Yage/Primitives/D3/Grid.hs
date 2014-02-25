@@ -10,6 +10,7 @@ import Yage.Math
 
 import Yage.Primitives.D3.Basic
 import Yage.Geometry.Vertex
+import Yage.Geometry.Elements
 
 
 -- | creates a grid along the xz plane with its center in origin and 1/1 dimension
