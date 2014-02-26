@@ -14,7 +14,7 @@ import Data.Vector ((!))
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements as Elements
 import Yage.Geometry.Formats.ObjParser hiding (Face)
-import Yage.Geometry.Formats.ObjParser as OBJ (OBJ, name)
+import Yage.Geometry.Formats.ObjParser as OBJ (OBJ, name, parseOBJFile)
 
 
 
@@ -30,7 +30,7 @@ geometryFromOBJ obj posfield =
         createFace (a:b:c:d:[]) = Face (mkVertex a) (mkVertex b) (mkVertex c) (mkVertex d)
         createFace _            = error "Yage.Geometry.geometryFromOBJ: invalid obj face"
           
-        mkVertex ((VertexIndex i):ixs) = posfield =: (realToFrac <$> verts ! i)
+        mkVertex ((VertexIndex i):ixs) = posfield =: (realToFrac <$> verts ! (i-1))
         mkVertex (_:ixs) = mkVertex ixs
         mkVertex []      = error "Yage.Geometry.geometryFromOBJ: missing vertex data"
           
