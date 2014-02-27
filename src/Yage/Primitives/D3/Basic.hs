@@ -12,11 +12,10 @@
 module Yage.Primitives.D3.Basic where
 
 import Yage.Prelude
+import Yage.Lens
 
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
-import Data.List
-import Data.Foldable (Foldable)
 
 import Yage.Math
 
@@ -80,7 +79,7 @@ calculateNormals pos norm smooth primitive =
                                                     ( fmap (triangleNorm smooth) _pyramidBase )
     calc _            faceNorm Quad{..}        = Quad $ faceNorm _quadFace
     calc triangleNorm _        GeoSphere{..}   = GeoSphere $ fmap (triangleNorm smooth) _geoSphereTris
-calculateNormals _ _ _ _ = error "calculateNormals: unsupported primitive"
+-- calculateNormals _ _ _ _ = error "calculateNormals: unsupported primitive"
 
 
 
@@ -94,7 +93,7 @@ instance HasTriangles Primitive where
   triangles Quad{..}        = triangles _quadFace
   triangles GeoSphere{..}   = _geoSphereTris 
   triangles Grid{..}        = concat $ fmap triangles _gridSections
-  triangles _ = error "invalid triangles for Primitive"
+  -- triangles _ = error "invalid triangles for Primitive"
 
 
 instance HasLines Primitive where

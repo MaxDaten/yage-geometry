@@ -4,9 +4,8 @@ module Yage.Geometry
     , module OBJ
     ) where
 
-import Yage.Prelude hiding (elements)
-
-import Data.Foldable (Foldable)
+import Yage.Prelude
+import Yage.Lens hiding (elements)
 
 import qualified Data.Vector as V
 import Data.Vector ((!))
@@ -30,7 +29,7 @@ geometryFromOBJ obj posfield =
         createFace (a:b:c:d:[]) = Face (mkVertex a) (mkVertex b) (mkVertex c) (mkVertex d)
         createFace _            = error "Yage.Geometry.geometryFromOBJ: invalid obj face"
           
-        mkVertex ((VertexIndex i):ixs) = posfield =: (realToFrac <$> verts ! (i-1))
+        mkVertex ((VertexIndex i):_ixs) = posfield =: (realToFrac <$> verts ! (i-1))
         mkVertex (_:ixs) = mkVertex ixs
         mkVertex []      = error "Yage.Geometry.geometryFromOBJ: missing vertex data"
           

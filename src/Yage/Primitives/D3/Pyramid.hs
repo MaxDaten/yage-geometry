@@ -2,7 +2,7 @@ module Yage.Primitives.D3.Pyramid where
 
 import Yage.Prelude
 
-import Yage.Data.List (shift, zip, zip3)
+import Yage.Data.List (shift)
 import Yage.Math
 
 import Yage.Primitives.D3.Basic

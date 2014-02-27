@@ -2,9 +2,9 @@
 {-# LANGUAGE PackageImports #-}
 module Yage.Primitives.D3.Grid where
 
-import Yage.Prelude hiding (Index)
+import Yage.Prelude hiding (Index, init, tail)
 
-import Yage.Data.List (tail, chunksOf, concat, init)
+import Yage.Data.List (init, tail, chunksOf)
 
 import Yage.Math
 

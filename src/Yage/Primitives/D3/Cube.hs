@@ -2,6 +2,7 @@
 module Yage.Primitives.D3.Cube where
 
 import Yage.Prelude hiding (Index)
+import Yage.Lens
 
 import Linear (V3(..), _x, _y, _z)
 import Yage.Primitives.D3.Basic

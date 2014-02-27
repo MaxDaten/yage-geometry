@@ -1,8 +1,8 @@
 module Yage.Primitives.D3.Cone where
 
-import Yage.Prelude
+import Yage.Prelude hiding (init)
 
-import Yage.Data.List (shift, init, zip)
+import Yage.Data.List (shift, init)
 import Yage.Math hiding (height)
 
 import Yage.Primitives.D3.Basic

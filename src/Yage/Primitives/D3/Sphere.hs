@@ -3,8 +3,6 @@ module Yage.Primitives.D3.Sphere where
 import Yage.Prelude
 import Yage.Math
 
-import Data.List
-
 import Yage.Primitives.D3.Basic
 import Yage.Primitives.D3.Icosahedron
 import Yage.Geometry.Vertex

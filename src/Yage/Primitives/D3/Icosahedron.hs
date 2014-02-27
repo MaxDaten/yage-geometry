@@ -1,9 +1,9 @@
 module Yage.Primitives.D3.Icosahedron where
 
-import Yage.Prelude
+import Yage.Prelude hiding (init)
 import Yage.Math
 
-import Yage.Data.List (shift, init, zipWith3, concat, zip, map, transpose)
+import Yage.Data.List (shift, init, transpose)
 
 import Yage.Primitives.D3.Basic
 import Yage.Geometry.Vertex

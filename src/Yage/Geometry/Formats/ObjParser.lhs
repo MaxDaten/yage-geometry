@@ -4,17 +4,16 @@ full spec: http://www.martinreddy.net/gfx/3d/OBJ.spec
 
 > {-# LANGUAGE DeriveGeneric   #-}
 > {-# LANGUAGE TemplateHaskell #-}
-> {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+> {-# OPTIONS_GHC -fno-warn-unused-do-bind -fno-warn-missing-signatures #-}
 > module Yage.Geometry.Formats.ObjParser where
 
-> import Yage.Prelude hiding ((<|>), noneOf, try, Index, elements)
+> import Yage.Prelude   hiding ((<|>), try, Index, snoc, lines)
+> import Yage.Lens      hiding (Index, elements)
 
-> import Yage.Data.List ((++), zipWith)
 > import qualified Data.Vector as V
 > import Text.Parsec hiding (Line)
 > import Text.Parsec.Text
 > import Text.Read
-> import Data.Text.IO (readFile)
 > import Linear
 
 > import Generics.Deriving.Base (Generic)
@@ -510,9 +509,8 @@ texture vertices, and vertex normals in a file.
 
 > parseOBJFile :: FilePath -> IO OBJ
 > parseOBJFile filepath = do
->   let file = encodeString filepath 
->   input <- readFile file
->   case runParser parseOBJ mempty file input of
+>   input <- readFile filepath
+>   case runParser parseOBJ mempty (fpToString filepath) input of
 >       Left err -> error $ show err
 >       Right y  -> return y
 

@@ -72,6 +72,6 @@ library
     ghc-options:        -threaded -O0
 
   if flag(dev)
-    ghc-options:        -Wall
+    ghc-options:        -Wall -Werror
 
 

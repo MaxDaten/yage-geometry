@@ -7,11 +7,11 @@
 
 module Yage.Geometry.Elements where
 
-import Yage.Prelude
+import Yage.Prelude             hiding (head)
+import Yage.Lens
 
 import Yage.Geometry.Vertex
-import Data.List
-import Data.Foldable (Foldable)
+import Data.List                ( iterate, (!!), head )
 import Yage.Math
 
 
@@ -66,22 +66,22 @@ vertices p = p^..traverse.traverse
 --calcFaceNormal :: (vn ~ (v ++ '[Normal3 nn a]), Epsilon a, Floating a, Implicit (Elem (Position3 pn a) v), Implicit (Elem (Position3 pn a) vn), Implicit (Elem (Normal3 nn a) vn)) => Face (Vertex v) -> Face (Vertex vn)
 addFaceNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
               => Position3 pn a -> Normal3 nn a -> Face (Vertex v) -> Face (Vertex vn)
-addFaceNormal pos norm face@(Face a b c _) =
-  let (n, _, _) = plainNormalForm (rGet pos c) (rGet pos b) (rGet pos a)
-  in fmap (<+> norm =: n) face
+addFaceNormal posF normF face@(Face a b c _) =
+  let (n, _, _) = plainNormalForm (rGet posF c) (rGet posF b) (rGet posF a)
+  in fmap (<+> normF =: n) face
 
 
 
 
 addTriangleNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
                   => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Triangle (Vertex v) -> Triangle (Vertex vn)
-addTriangleNormal pos norm FacetteNormals t@(Triangle a b c) = 
-  let (n, _, _) = plainNormalForm (rGet pos c) (rGet pos b) (rGet pos a)
-  in fmap (<+> norm =: n) t
-addTriangleNormal pos norm SphericalNormals t@(Triangle a b c) =
-   Triangle (a <+> norm =: normalize (rGet pos a)) 
-            (b <+> norm =: normalize (rGet pos b)) 
-            (c <+> norm =: normalize (rGet pos c)) 
+addTriangleNormal posF normF FacetteNormals t@(Triangle a b c) = 
+  let (n, _, _) = plainNormalForm (rGet posF c) (rGet posF b) (rGet posF a)
+  in fmap (<+> normF =: n) t
+addTriangleNormal posF normF SphericalNormals (Triangle a b c) =
+   Triangle (a <+> normF =: normalize (rGet posF a)) 
+            (b <+> normF =: normalize (rGet posF b)) 
+            (c <+> normF =: normalize (rGet posF c)) 
 
 
 
