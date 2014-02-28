@@ -37,11 +37,6 @@ texture2  = Field
 color4    :: Color4 name a
 color4    = Field
 
---class (Implicit (Elem (Position3 pn a) v)) => HasPosition pn a v where {}
---instance (Implicit (Elem (Position3 pn a) v)) => HasPosition pn a v where {}
---class (Implicit (Elem (Normal3 nn a) v))  => HasNormal nn a v where {}
---instance (Implicit (Elem (Normal3 nn a) v))  => HasNormal nn a v where {}
-
 
 --data VertexData pn nn tn a =
 --      Position3 (pn ::: V3 a)
