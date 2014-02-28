@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Yage.Geometry
     ( module Yage.Geometry
     , module Elements
@@ -9,6 +11,9 @@ import Yage.Lens hiding (elements)
 
 import qualified Data.Vector as V
 import Data.Vector ((!))
+import Data.Vector.Binary ()
+import Data.Binary
+import GHC.Generics (Generic)
 
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements as Elements
@@ -19,7 +24,7 @@ import Yage.Geometry.Formats.ObjParser as OBJ (OBJ, name, parseOBJFile)
 
 data Geometry e = Geometry
     { geoElements :: V.Vector e
-    } deriving ( Show, Functor, Foldable, Traversable )
+    } deriving ( Show, Functor, Foldable, Traversable, Generic )
 
 
 geometryFromOBJ :: (Floating a, Enum a) => OBJ -> Position3 pn a -> Geometry (Face (Vertex (P3 pn a)))
@@ -34,3 +39,5 @@ geometryFromOBJ obj posfield =
         mkVertex []      = error "Yage.Geometry.geometryFromOBJ: missing vertex data"
           
         verts = obj^.vertexData.geometricVertices
+
+instance (Binary e) => Binary (Geometry e)

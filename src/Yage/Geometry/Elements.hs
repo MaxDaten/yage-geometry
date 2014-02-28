@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TypeOperators      #-}
 {-# LANGUAGE KindSignatures     #-}
@@ -12,6 +13,8 @@ import Yage.Lens
 
 import Yage.Geometry.Vertex
 import Data.List                ( iterate, (!!), head )
+import Data.Binary
+import GHC.Generics (Generic)
 import Yage.Math
 
 
@@ -19,16 +22,16 @@ import Yage.Math
 -- Basic Types
 
 data Triangle v = Triangle v v v
-  deriving ( Show, Functor, Foldable, Traversable )
+  deriving ( Show, Functor, Foldable, Traversable, Generic )
 
 data Face v = Face v v v v
-  deriving ( Show, Functor, Foldable, Traversable )
+  deriving ( Show, Functor, Foldable, Traversable, Generic )
 
 data Line v = Line v v
-  deriving ( Show, Functor, Foldable, Traversable )
+  deriving ( Show, Functor, Foldable, Traversable, Generic )
 
 data Point v = Point v
-  deriving ( Show, Functor, Foldable, Traversable )
+  deriving ( Show, Functor, Foldable, Traversable, Generic )
 
 
 --data Surface v = Surface [Face v]
@@ -112,7 +115,10 @@ triangulate iter pos src = iterate subdivide src !! iter
           fst3 (Triangle a _ _) = rGet pos a
 
 
-
+instance (Binary e) => Binary (Triangle e)
+instance (Binary e) => Binary (Face e)
+instance (Binary e) => Binary (Line e)
+instance (Binary e) => Binary (Point e)
 --flipSurface :: Surface v -> Surface v
 --flipSurface (Surface faces) = Surface $ fmap flipFace faces
 

@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing    #-}
+{-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE TupleSections      #-}
@@ -16,6 +17,10 @@ import Yage.Lens
 
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
+
+import Data.Binary
+import GHC.Generics (Generic)
+
 
 import Yage.Math
 
@@ -51,7 +56,7 @@ data Primitive v =
     
     | GeoSphere    { _geoSphereTris :: [Triangle v] }
     
-    deriving ( Show, Functor, Foldable, Traversable )
+    deriving ( Show, Functor, Foldable, Traversable , Generic)
 
 makeLenses ''Primitive
 
@@ -100,3 +105,4 @@ instance HasLines Primitive where
   toLines p = concatMap toLines $ triangles p
 
 
+instance (Binary e) => Binary (Primitive e)
