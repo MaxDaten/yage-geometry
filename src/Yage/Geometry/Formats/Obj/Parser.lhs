@@ -5,7 +5,7 @@ full spec: http://www.martinreddy.net/gfx/3d/OBJ.spec
 > {-# LANGUAGE DeriveGeneric   #-}
 > {-# LANGUAGE TemplateHaskell #-}
 > {-# OPTIONS_GHC -fno-warn-unused-do-bind -fno-warn-missing-signatures #-}
-> module Yage.Geometry.Formats.ObjParser where
+> module Yage.Geometry.Formats.Obj.Parser where
 
 > import Yage.Prelude   hiding ((<|>), try, Index, snoc, lines)
 > import Yage.Lens      hiding (Index, elements)
@@ -40,6 +40,8 @@ obj Parsing
 >   , _lines      :: !(V.Vector Line)
 >   , _faces      :: !(V.Vector Face) 
 >   } deriving ( Show, Eq, Generic )
+
+
 > type OBJParser = GenParser OBJ
 
 File Structure

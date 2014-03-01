@@ -1,10 +1,12 @@
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE TypeOperators      #-}
-{-# LANGUAGE KindSignatures     #-}
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE FlexibleContexts   #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE KindSignatures       #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
 
 module Yage.Geometry.Elements where
 
@@ -16,6 +18,8 @@ import Data.List                ( iterate, (!!), head )
 import Data.Binary
 import GHC.Generics (Generic)
 import Yage.Math
+import Linear.Binary
+
 
 
 ---------------------------------------------------------------------------------------------------
@@ -115,10 +119,33 @@ triangulate iter pos src = iterate subdivide src !! iter
           fst3 (Triangle a _ _) = rGet pos a
 
 
-instance (Binary e) => Binary (Triangle e)
-instance (Binary e) => Binary (Face e)
-instance (Binary e) => Binary (Line e)
-instance (Binary e) => Binary (Point e)
+
+instance (Binary a, Applicative t, Foldable t, Traversable t) => Binary (t a) where
+    put = putLinear
+    get = getLinear
+
+
+instance Applicative Point where
+    pure v = Point v
+    (Point f) <*> (Point a) = Point (f a)  
+
+instance Applicative Line where
+    pure v = Line v v
+    (Line fa fb) <*> (Line a b) = Line (fa a) (fb b)
+
+instance Applicative Triangle where
+    pure v = Triangle v v v
+    (Triangle fa fb fc) <*> (Triangle a b c) = Triangle (fa a) (fb b) (fc c) 
+
+instance Applicative Face where
+    pure v = Face v v v v
+    (Face fa fb fc fd) <*> (Face a b c d) = (Face (fa a) (fb b) (fc c) (fd d))  
+
+
+--instance (Binary e) => Binary (Triangle e)
+--instance (Binary e) => Binary (Face e)
+--instance (Binary e) => Binary (Line e)
+--instance (Binary e) => Binary (Point e)
 --flipSurface :: Surface v -> Surface v
 --flipSurface (Surface faces) = Surface $ fmap flipFace faces
 

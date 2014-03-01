@@ -25,6 +25,7 @@ import GHC.Generics (Generic)
 import Yage.Math
 
 
+
 ---------------------------------------------------------------------------------------------------
 -- Primitives
 
@@ -104,5 +105,3 @@ instance HasTriangles Primitive where
 instance HasLines Primitive where
   toLines p = concatMap toLines $ triangles p
 
-
-instance (Binary e) => Binary (Primitive e)

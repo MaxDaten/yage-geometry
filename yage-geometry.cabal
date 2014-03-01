@@ -31,7 +31,9 @@ library
                        Yage.Geometry
                        Yage.Geometry.Vertex
                        Yage.Geometry.Elements
-                       Yage.Geometry.Formats.ObjParser
+                       Yage.Geometry.Formats.Obj
+                       Yage.Geometry.Formats.Ygm
+                       Yage.Geometry.Formats.Obj.Parser
   
   other-modules:       Yage.Primitives.D3.Basic
                        Yage.Primitives.D3.Cone
@@ -55,6 +57,7 @@ library
                     , text                    >= 1.1       && < 1.2
                     , generic-deriving        >= 1.6
                     , binary                  == 0.7.*
+                    , text-binary             == 0.1.*
 
 
   default-language:    Haskell2010

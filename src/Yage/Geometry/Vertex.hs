@@ -21,6 +21,7 @@ type Vertex rs = PlainRec rs
 
 type P3 pn a      = '[Position3 pn a]
 type P3N3 pn nn a = [Position3 pn a, Normal3 nn a]
+type P3T2 pn tn a = [Position3 pn a, Texture2 tn a]
 
 position3 :: Position3 name a
 position3 = Field
