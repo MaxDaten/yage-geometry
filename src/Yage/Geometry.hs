@@ -7,23 +7,23 @@ module Yage.Geometry
     ) where
 
 import Yage.Prelude
-import Yage.Lens hiding (elements)
 
-import qualified Data.Vector as V
-import Data.Vector ((!))
-import Data.Vector.Binary ()
-import Data.Vinyl.Binary
 import Data.Binary
+import qualified Data.Vector as V
+import qualified Data.Vector.Binary ()
+import Yage.Geometry.Elements as Elements
 import GHC.Generics (Generic)
 
-import Yage.Geometry.Vertex
-import Yage.Geometry.Elements as Elements
 
 data Geometry e = Geometry
     { geoElements :: V.Vector e
-    } deriving ( Show, Functor, Foldable, Traversable, Generic )
+    } deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
 
-instance Applicative Geometry where
-    pure = Geometry . V.singleton
-    (Geometry f) <*> (Geometry v) = Geometry (f <*> v)
+
+
+instance (Binary e) => Binary (Geometry e)
+
+--instance Applicative Geometry where
+--    pure = Geometry . V.singleton
+--    (Geometry f) <*> (Geometry v) = Geometry (f <*> v)
 

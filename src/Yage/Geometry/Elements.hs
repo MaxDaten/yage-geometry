@@ -18,7 +18,7 @@ import Data.List                ( iterate, (!!), head )
 import Data.Binary
 import GHC.Generics (Generic)
 import Yage.Math
-import Linear.Binary
+-- import Linear.Binary
 
 
 
@@ -26,16 +26,16 @@ import Linear.Binary
 -- Basic Types
 
 data Triangle v = Triangle v v v
-  deriving ( Show, Functor, Foldable, Traversable, Generic )
+  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
 
 data Face v = Face v v v v
-  deriving ( Show, Functor, Foldable, Traversable, Generic )
+  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
 
 data Line v = Line v v
-  deriving ( Show, Functor, Foldable, Traversable, Generic )
+  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
 
 data Point v = Point v
-  deriving ( Show, Functor, Foldable, Traversable, Generic )
+  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
 
 
 --data Surface v = Surface [Face v]
@@ -120,11 +120,6 @@ triangulate iter pos src = iterate subdivide src !! iter
 
 
 
-instance (Binary a, Applicative t, Foldable t, Traversable t) => Binary (t a) where
-    put = putLinear
-    get = getLinear
-
-
 instance Applicative Point where
     pure v = Point v
     (Point f) <*> (Point a) = Point (f a)  
@@ -142,10 +137,10 @@ instance Applicative Face where
     (Face fa fb fc fd) <*> (Face a b c d) = (Face (fa a) (fb b) (fc c) (fd d))  
 
 
---instance (Binary e) => Binary (Triangle e)
---instance (Binary e) => Binary (Face e)
---instance (Binary e) => Binary (Line e)
---instance (Binary e) => Binary (Point e)
+instance (Binary e) => Binary (Triangle e)
+instance (Binary e) => Binary (Face e)
+instance (Binary e) => Binary (Line e)
+instance (Binary e) => Binary (Point e)
 --flipSurface :: Surface v -> Surface v
 --flipSurface (Surface faces) = Surface $ fmap flipFace faces
 

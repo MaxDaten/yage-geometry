@@ -14,15 +14,13 @@ module Yage.Primitives.D3.Basic where
 
 import Yage.Prelude
 import Yage.Lens
+import Yage.Math
 
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 
-import Data.Binary
 import GHC.Generics (Generic)
 
-
-import Yage.Math
 
 
 

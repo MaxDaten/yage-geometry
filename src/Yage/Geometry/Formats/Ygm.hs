@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric          #-}
 {-# LANGUAGE NamedFieldPuns         #-}
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE UndecidableInstances   #-}
 module Yage.Geometry.Formats.Ygm where
@@ -9,15 +10,14 @@ import Yage.Prelude
 
 import GHC.Generics (Generic)
 
-import Data.Text
 import Data.Proxy
 import Data.Binary
-import Data.Text.Binary
-
+import Data.Text.Binary ()
+import Codec.Compression.GZip
+import qualified Data.ByteString.Lazy as B
 
 import Yage.Geometry
 import Yage.Geometry.Vertex
-import Yage.Geometry.Elements
 
 -- yage geometry model
 data YGM e = YGM
@@ -27,11 +27,11 @@ data YGM e = YGM
 
 
 
-ygmToFile :: (Binary a) => FilePath -> YGM (P3T2 pn tn a) -> IO ()
-ygmToFile = encodeFile . fpToString
+ygmToFile :: (v ~ (P3T2 pn tn a), Binary (Vertex v)) => FilePath -> YGM v -> IO ()
+ygmToFile name = B.writeFile (fpToString name) . compress . encode
 
-ygmFromFile :: (Binary a) => FilePath -> Proxy (P3T2 pn tn a) -> IO (YGM (P3T2 pn tn a))
-ygmFromFile path _p = YGM (fpToText path) <$> (decodeFile . fpToString) path
+ygmFromFile :: (v ~ (P3T2 pn tn a), Binary (Vertex v)) => FilePath -> Proxy v -> IO (YGM v)
+ygmFromFile path _p = decode . decompress <$> (B.readFile $ fpToString path)
 
 
 instance Show (YGM e) where

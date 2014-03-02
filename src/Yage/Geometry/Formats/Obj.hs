@@ -7,8 +7,6 @@ module Yage.Geometry.Formats.Obj
 import Yage.Prelude
 import Yage.Lens hiding (elements)
 
-import GHC.Generics (Generic)
-
 import Data.Proxy
 import qualified Data.Vector as V
 import Yage.Geometry.Formats.Obj.Parser hiding (Face)
