@@ -16,26 +16,35 @@ import Yage.Geometry
 
 
 
-geometryFromOBJ :: (Floating a, Enum a) => Proxy (P3T2 pn tn a) -> OBJ -> Geometry (Triangle (Vertex (P3T2 pn tn a)))
+type Geo pn tn a = TriGeo (Vertex (P3T2 pn tn a))
+
+geometryFromOBJ :: (Floating a, Enum a, Show a) => Proxy (P3T2 pn tn a) -> OBJ -> Geo pn tn a
 geometryFromOBJ _p obj 
     | not $ hasTextureCoords obj  = error "OBJ is missing neccessary texture coords"
-    | otherwise =
-        Geometry { geoElements = V.concatMap createFace (obj^.elements.faces) }
+    | otherwise = 
+        Geometry { geoVertices = V.concatMap (V.fromList . map mkVertex) (obj^.elements.faces)
+                 , geoElements = V.concatMap id $ V.generate (V.length $ obj^.elements.faces) (\i -> V.fromList . triangles $ Face (i*4) (i*4+1) (i*4+2) (i*4+3))
+                 }
         where -- createFace :: OBJ.Face -> Face (Vertex (P3 pn a))
-            createFace (a:b:c:d:[]) = V.fromList . triangles $ Face (mkVertex a) (mkVertex b) (mkVertex c) (mkVertex d)
-            createFace (a:b:c:[])   =            V.singleton $ Triangle (mkVertex a) (mkVertex b) (mkVertex c)
-            createFace _            = error "Yage.Geometry.geometryFromOBJ: invalid obj face"
-              
+            --createElement (a:b:c:d:[]) = V.fromList . triangles $ traceShowS' "theFace:" $ Face (idx a) (idx b) (idx c) (idx d)
+            --createElement (a:b:c:[])   =            V.singleton $ traceShowS' "theTri:" $ Triangle (idx a) (idx b) (idx c)
+            --createElement _            = error "Yage.Geometry.geometryFromOBJ: invalid obj face"
+            
+            --idx (VertexIndex vi:_ixs) = vi - 1
+            --idx (_:ixs) = idx ixs
+            --idx [] = error "Yage.Geometry.geometryFromOBJ: missing VertexIndex in OBJ"
+
             mkVertex ((VertexIndex  vi):(TextureIndex ti):_ixs) =
                 position3 =: (realToFrac <$> verts V.! (vi-1)) <+> 
                 texture2  =: (realToFrac <$> texs V.! (ti-1))
-            mkVertex (_:ixs) = mkVertex ixs
+            mkVertex (_:ixs) = traceShow "skipping" $ mkVertex ixs
             mkVertex []      = error "Yage.Geometry.geometryFromOBJ: missing vertex data"
               
             verts = obj^.vertexData.geometricVertices
             texs  = obj^.vertexData.textureVertices
 
-geometryFromOBJFile :: (Floating a, Enum a) => Proxy (P3T2 pn tn a) -> FilePath -> IO (Geometry (Triangle (Vertex (P3T2 pn tn a))))
+
+geometryFromOBJFile :: (Floating a, Enum a, Show a) => Proxy (P3T2 pn tn a) -> FilePath -> IO (Geo pn tn a)
 geometryFromOBJFile p file = (geometryFromOBJ p) <$> parseOBJFile file
 
 

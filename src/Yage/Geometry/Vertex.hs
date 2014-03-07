@@ -15,14 +15,16 @@ import Linear
 type Position3 name a = name ::: V3 a
 type Position2 name a = name ::: V2 a
 type Normal3   name a = name ::: V3 a
+type Tangent3  name a = name ::: V3 a
 type Texture2  name a = name ::: V2 a
 type Color4    name a = name ::: V4 a
 type Vertex rs = PlainRec rs
 
-type P3 pn a      = '[Position3 pn a]
-type P3N3 pn nn a = [Position3 pn a, Normal3 nn a]
-type P3T2 pn tn a = [Position3 pn a, Texture2 tn a]
-type P3N3T2 pn nn tn a = [Position3 pn a, Normal3 nn a, Texture2 tn a]
+type P3 pn a                = '[Position3 pn a]
+type P3N3 pn nn a           = [Position3 pn a, Normal3 nn a]
+type P3T2 pn tn a           = [Position3 pn a, Texture2 tn a]
+type P3T2N3  pn tx nn a     = [Position3 pn a, Texture2 tx a, Normal3 nn a]
+type P3T2NT3 pn tx nn tg a  = [Position3 pn a, Texture2 tx a, Normal3 nn a, Tangent3 tg a]
 
 position3 :: Position3 name a
 position3 = Field
@@ -32,6 +34,9 @@ position2 = Field
 
 normal3   :: Normal3 name a
 normal3   = Field
+
+tangent3  :: Tangent3 name a
+tangent3  = Field
 
 texture2  :: Texture2 name a
 texture2  = Field

@@ -63,8 +63,8 @@ makeLenses ''Primitive
 calculateNormals :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v) 
                  => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Primitive (Vertex v) -> Primitive (Vertex vn)
 calculateNormals pos norm smooth primitive = 
-  let triangleNorm = addTriangleNormal pos norm
-      faceNorm     = addFaceNormal pos norm
+  let triangleNorm = calcTriangleNormal pos norm
+      faceNorm     = calcFaceNormal pos norm
   in calc triangleNorm faceNorm primitive
   where
     calc triangleNorm _        Cone{..}        = Cone (fmap (triangleNorm smooth) _coneMantle) (fmap (triangleNorm FacetteNormals) _coneBase)

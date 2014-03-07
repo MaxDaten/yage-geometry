@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -7,16 +7,20 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 
 module Yage.Geometry.Elements where
 
 import Yage.Prelude             hiding (head)
 import Yage.Lens
 
+import Foreign.Storable                (Storable(..))
+import Foreign.Ptr                     (castPtr)
+
 import Yage.Geometry.Vertex
-import Data.List                ( iterate, (!!), head )
+import Data.List                       ( iterate, (!!), head )
 import Data.Binary
-import GHC.Generics (Generic)
+import GHC.Generics                    (Generic)
 import Yage.Math
 -- import Linear.Binary
 
@@ -48,7 +52,7 @@ class HasTriangles p where
   triangles :: Functor p => p v -> [Triangle v]
 
 instance HasTriangles Face where
-  triangles (Face a b c d) = [Triangle a b c, Triangle c d a]
+  triangles (Face a b c d) = [Triangle a b c, Triangle a c d]
 
 instance HasTriangles Triangle where
   triangles tri = [tri]
@@ -71,25 +75,35 @@ vertices p = p^..traverse.traverse
 
 
 --calcFaceNormal :: (vn ~ (v ++ '[Normal3 nn a]), Epsilon a, Floating a, Implicit (Elem (Position3 pn a) v), Implicit (Elem (Position3 pn a) vn), Implicit (Elem (Normal3 nn a) vn)) => Face (Vertex v) -> Face (Vertex vn)
-addFaceNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
+calcFaceNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
               => Position3 pn a -> Normal3 nn a -> Face (Vertex v) -> Face (Vertex vn)
-addFaceNormal posF normF face@(Face a b c _) =
+calcFaceNormal posF normF face@(Face a b c _) =
   let (n, _, _) = plainNormalForm (rGet posF c) (rGet posF b) (rGet posF a)
   in fmap (<+> normF =: n) face
 
 
 
 
-addTriangleNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
+calcTriangleNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
                   => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Triangle (Vertex v) -> Triangle (Vertex vn)
-addTriangleNormal posF normF FacetteNormals t@(Triangle a b c) = 
+calcTriangleNormal posF normF FacetteNormals t@(Triangle a b c) = 
   let (n, _, _) = plainNormalForm (rGet posF c) (rGet posF b) (rGet posF a)
   in fmap (<+> normF =: n) t
-addTriangleNormal posF normF SphericalNormals (Triangle a b c) =
+calcTriangleNormal posF normF SphericalNormals (Triangle a b c) =
    Triangle (a <+> normF =: normalize (rGet posF a)) 
             (b <+> normF =: normalize (rGet posF b)) 
             (c <+> normF =: normalize (rGet posF c)) 
 
+
+triangleNormal :: (Epsilon a, Floating a)
+               => Triangle (V3 a) -> V3 a
+triangleNormal = normalize . triangleUnnormal 
+
+
+-- | area weighted triangle normal (the length is proportional to the area of the triangle)
+triangleUnnormal :: (Epsilon a, Floating a)
+               => Triangle (V3 a) -> V3 a
+triangleUnnormal (Triangle a b c) = (b - a) `cross` (c - a)
 
 
 flipTriangle :: Triangle v -> Triangle v
@@ -143,4 +157,58 @@ instance (Binary e) => Binary (Line e)
 instance (Binary e) => Binary (Point e)
 --flipSurface :: Surface v -> Surface v
 --flipSurface (Surface faces) = Surface $ fmap flipFace faces
+
+instance Storable a => Storable (Triangle a) where
+  sizeOf _ = 3 * sizeOf (undefined::a)
+  {-# INLINE sizeOf #-}
+  alignment _ = alignment (undefined::a)
+  {-# INLINE alignment #-}
+  poke ptr (Triangle a b c) = do poke ptr' a
+                                 pokeElemOff ptr' 1 b
+                                 pokeElemOff ptr' 2 c
+    where ptr' = castPtr ptr
+  {-# INLINE poke #-}
+  peek ptr = Triangle <$> peek ptr' <*> peekElemOff ptr' 1 <*> peekElemOff ptr' 2
+    where ptr' = castPtr ptr
+  {-# INLINE peek #-}
+
+instance Storable a => Storable (Line a) where
+  sizeOf _ = 2 * sizeOf (undefined::a)
+  {-# INLINE sizeOf #-}
+  alignment _ = alignment (undefined::a)
+  {-# INLINE alignment #-}
+  poke ptr (Line a b) = do poke ptr' a
+                           pokeElemOff ptr' 1 b
+    where ptr' = castPtr ptr
+  {-# INLINE poke #-}
+  peek ptr = Line <$> peek ptr' <*> peekElemOff ptr' 1
+    where ptr' = castPtr ptr
+  {-# INLINE peek #-}
+
+instance Storable a => Storable (Point a) where
+  sizeOf _ = sizeOf (undefined::a)
+  {-# INLINE sizeOf #-}
+  alignment _ = alignment (undefined::a)
+  {-# INLINE alignment #-}
+  poke ptr (Point a) = poke ptr' a
+    where ptr' = castPtr ptr
+  {-# INLINE poke #-}
+  peek ptr = Point <$> peek ptr'
+    where ptr' = castPtr ptr
+  {-# INLINE peek #-}
+
+instance Storable a => Storable (Face a) where
+  sizeOf _ = 4 * sizeOf (undefined::a)
+  {-# INLINE sizeOf #-}
+  alignment _ = alignment (undefined::a)
+  {-# INLINE alignment #-}
+  poke ptr (Face a b c d) = do poke ptr' a
+                               pokeElemOff ptr' 1 b
+                               pokeElemOff ptr' 2 c
+                               pokeElemOff ptr' 3 d
+    where ptr' = castPtr ptr
+  {-# INLINE poke #-}
+  peek ptr = Face <$> peek ptr' <*> peekElemOff ptr' 1 <*> peekElemOff ptr' 2 <*> peekElemOff ptr' 3
+    where ptr' = castPtr ptr
+  {-# INLINE peek #-}
 
