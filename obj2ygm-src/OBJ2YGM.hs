@@ -2,7 +2,7 @@ module Main where
 
 import Yage.Prelude hiding (head)
 
-import Data.List
+import Data.List hiding ((++))
 import Data.Proxy
 
 
@@ -18,21 +18,19 @@ type YGMVertex = P3T2NT3 "pos" "tex" "norm" "tan" Float
 main :: IO ()
 main = do
     importFile <- fpFromText . head <$> getArgs
-    inGeo <- OBJ.geometryFromOBJFile (Proxy::Proxy OBJVertex) importFile
+
+    print $ "import...: " ++ show importFile
+    (pGeo, tGeo) <- OBJ.geometryFromOBJFile importFile
     let name        = fpToText . basename $ importFile
         exportFile  = basename importFile <.> "ygm"
-        exportGeo   = genSmoothings' inGeo
-        ygm         = YGM.YGM name exportGeo
+        ntGeo       = genSmoothings pGeo tGeo
+        ygm         = YGM.YGM name (packGeos YGM.vertexFormat pGeo tGeo ntGeo) :: YGM.YGM YGMVertex
+
+    print $ "...export: " ++ show exportFile
     YGM.ygmToFile exportFile ygm
     print ygm
 
+    print $ "check: " ++ show exportFile
     fileCheck <- YGM.ygmFromFile exportFile (Proxy::Proxy YGMVertex)
     print fileCheck
     --print $ format "file correct: {0}" [show $ fileCheck == ygm]
-
-genSmoothings' :: TriGeo (Vertex OBJVertex) -> TriGeo (Vertex YGMVertex)
-genSmoothings' = genSmoothings 
-                    (position3 :: Position3 "pos" Float)
-                    (texture2  :: Texture2  "tex" Float)
-                    (normal3   :: Normal3   "norm" Float)
-                    (tangent3  :: Tangent3  "tan" Float)

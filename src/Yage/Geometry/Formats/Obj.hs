@@ -1,16 +1,18 @@
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE ParallelListComp   #-}
 module Yage.Geometry.Formats.Obj
     ( module Yage.Geometry.Formats.Obj
     , module Yage.Geometry.Formats.Obj.Parser
     ) where
 
-import Yage.Prelude hiding (any)
+import Yage.Prelude hiding (any, toList)
 import Yage.Lens hiding (elements)
 import Yage.Math
 import Data.List (nub)
+import Data.Graph hiding (Vertex)
 import Data.Proxy
-import Data.Foldable (any)
+import Data.Foldable (any, toList)
 import qualified Data.Vector as V
 import Yage.Geometry.Formats.Obj.Parser hiding (Face)
 import qualified Yage.Geometry.Formats.Obj.Parser as OBJ (Face)
@@ -21,6 +23,8 @@ import Yage.Geometry
 
 
 
+type PosGeo a = TriGeo (V3 a)
+type TexGeo a = TriGeo (V2 a)
 type Geo pn tn a = TriGeo (Vertex (P3T2 pn tn a))
 
 
@@ -29,13 +33,57 @@ type VertIdx = Int
 type TexIdx  = Int
 
 data OBJFaceVertex = FaceVertex
-    { fVertexIndex  :: VertIdx
-    , fTextureIndex :: TexIdx
+    { fVertexIndex  :: !VertIdx
+    , fTextureIndex :: !TexIdx
     }
 
-geometryFromOBJ :: (Floating a, Enum a) => Proxy (P3T2 pn tn a) -> OBJ -> Geo pn tn a
-geometryFromOBJ _p obj 
+geometryFromOBJ :: (Floating a, Enum a) => OBJ -> (PosGeo a, TexGeo a)
+geometryFromOBJ obj 
     | not $ hasTextureCoords obj  = error "OBJ is missing neccessary texture coords"
+    | otherwise =
+    let vertGeo = Geometry (V.map (fmap realToFrac) verts) (V.map (fmap fVertexIndex) triFaces)
+        texGeo  = Geometry (V.map (fmap realToFrac) texs) (V.map (fmap fTextureIndex) triFaces)
+    in (vertGeo, texGeo)
+
+    where
+    verts   = obj^.vertexData.geometricVertices
+    texs    = obj^.vertexData.textureVertices
+    elems   = obj^.elements.faces
+    
+    triFaces :: V.Vector (Triangle OBJFaceVertex)
+    triFaces = V.concatMap createFaceVert elems
+    
+    --sharedFaces :: VertIdx -> V.Vector (FaceIdx, Triangle OBJFaceVertex)
+    --sharedFaces vidx = V.filter (\(_,face) -> isFaceOf vidx face) triFaces
+
+    --connectedVerts :: VertIdx -> [VertIdx]
+    --connectedVerts vidx = V.foldl (\ixs (_, tri) -> ixs ++ (filter (/=vidx) $ toList (fVertexIndex <$> tri)) ) [] (sharedFaces vidx)
+
+    createFaceVert :: OBJ.Face -> V.Vector (Triangle OBJFaceVertex)
+    createFaceVert (a:b:c:d:[]) = V.fromList . triangles $ Face (mkFaceVertex a) (mkFaceVertex b) (mkFaceVertex c) (mkFaceVertex d)
+    createFaceVert (a:b:c:[])   = V.singleton $ Triangle (mkFaceVertex a) (mkFaceVertex b) (mkFaceVertex c)
+    createFaceVert _ = error "Yage.Geometry.Formats.Obj: invalid Face in OBJ"
+
+    mkFaceVertex :: References -> OBJFaceVertex
+    mkFaceVertex ((VertexIndex vi):(TextureIndex ti):_) = FaceVertex (vi-1) (ti-1)
+    mkFaceVertex _ = error "Yage.Geometry.Formats.Obj.mkFaceVertex: invalid index order"
+
+    isFaceOf :: Int -> Triangle OBJFaceVertex -> Bool -- | Face = [References]; References = [Index]
+    isFaceOf vertexIndex = any (\face -> fVertexIndex face == vertexIndex)
+
+
+
+
+
+
+
+
+
+
+{--
+
+
+
     | otherwise = 
         let (mergedVertices, reorganizedIndices) = V.ifoldl splitMergeVertexWithTex (V.empty, vIndices) verts
         in Geometry{geoVertices = mergedVertices, geoElements = reorganizedIndices}
@@ -63,40 +111,11 @@ geometryFromOBJ _p obj
     replaceVertexIndex :: Triangle VertIdx -> (VertIdx, VertIdx) -> Triangle VertIdx
     replaceVertexIndex tri (was, isNow) = (\i -> if i == was then isNow else i) <$> tri
 
-    isFaceOf :: Int -> Triangle OBJFaceVertex -> Bool -- | Face = [References]; References = [Index]
-    isFaceOf vertexIndex = any (\face -> fVertexIndex face == vertexIndex)
-
     extractTexIdx :: VertIdx -> (FaceIdx, Triangle OBJFaceVertex) -> (FaceIdx, TexIdx)
     extractTexIdx vertexIndex (i, triFace) = (i, fTextureIndex $ getVertex vertexIndex triFace)
-
-    createFaceVert :: OBJ.Face -> V.Vector (Triangle OBJFaceVertex)
-    createFaceVert (a:b:c:d:[]) = V.fromList . triangles $ Face (mkFaceVertex a) (mkFaceVertex b) (mkFaceVertex c) (mkFaceVertex d)
-    createFaceVert (a:b:c:[])   = V.singleton $ Triangle (mkFaceVertex a) (mkFaceVertex b) (mkFaceVertex c)
-    createFaceVert _ = error "Yage.Geometry.Formats.Obj: invalid Face in OBJ"
-
-    mkFaceVertex :: References -> OBJFaceVertex
-    mkFaceVertex ref = FaceVertex (refVertexIndex ref) (refTextureIndex ref)
-    
-    refVertexIndex :: References -> Int
-    refVertexIndex ((VertexIndex vi):_) = vi
-    refVertexIndex _ = error "Yage.Geometry.Formats.Obj.refVertexIndex: invalid index order"
-    
-    refTextureIndex :: References -> Int
-    refTextureIndex (_vi:(TextureIndex ti):_) = ti
-    refTextureIndex _ = error "Yage.Geometry.Formats.Obj.refTextureIndex: invalid index order"
-    
-    verts   = obj^.vertexData.geometricVertices
-    texs    = obj^.vertexData.textureVertices
-    elems   = obj^.elements.faces
-    
-    triFaces :: V.Vector (Int, Triangle OBJFaceVertex)
-    triFaces = V.indexed $ V.concatMap createFaceVert elems
-    
     vIndices :: V.Vector (Triangle Int)
     vIndices = V.map (\(_i, tri) -> fmap fVertexIndex tri) triFaces
 
-    sharedFaces :: VertIdx -> V.Vector (FaceIdx, Triangle OBJFaceVertex)
-    sharedFaces vidx = V.filter (\(_,face) -> isFaceOf vidx face) triFaces
 
     getVertex :: VertIdx -> Triangle OBJFaceVertex -> OBJFaceVertex
     getVertex vidx (Triangle a b c)
@@ -104,11 +123,12 @@ geometryFromOBJ _p obj
         | fVertexIndex b == vidx = b
         | fVertexIndex c == vidx = c
         | otherwise = error $ format "Yage.Geometry.Formats.Obj.getVertex: Triangle without vertex index: {0}" [show vidx]
+--}
 
 
 
-geometryFromOBJFile :: (Floating a, Enum a, Show a) => Proxy (P3T2 pn tn a) -> FilePath -> IO (Geo pn tn a)
-geometryFromOBJFile p file = (geometryFromOBJ p) <$> parseOBJFile file
+geometryFromOBJFile :: (Floating a, Enum a, Show a) => FilePath -> IO (PosGeo a, TexGeo a)
+geometryFromOBJFile file = geometryFromOBJ <$> parseOBJFile file
 
 
 hasTextureCoords :: OBJ -> Bool

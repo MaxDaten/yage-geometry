@@ -39,6 +39,14 @@ ygmFromFile :: (v ~ (P3T2NT3 pn txn nn tgn a), Binary (Vertex v))
 ygmFromFile path _p = decode . decompress <$> (B.readFile $ fpToString path)
 
 
+vertexFormat :: (v ~ (P3T2NT3 pn txn nn tgn a), Binary (Vertex v)) 
+             => Pos a -> Tex a -> NT a -> (Vertex v)
+vertexFormat pos tex (normal, tangent) =
+    position3 =: pos <+>
+    texture2  =: tex <+>
+    normal3   =: normal <+>
+    tangent3  =: tangent
+
 instance Show (YGM e) where
     show YGM{ygmName} = format "YGM {name = {0}}" [show ygmName]
 
