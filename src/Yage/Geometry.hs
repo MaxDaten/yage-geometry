@@ -17,7 +17,6 @@ import Yage.Prelude hiding (sum, toList, any)
 import Yage.Math
 import Yage.Lens
 
-import Data.Vinyl
 import Data.Binary
 import Data.Foldable (toList, any)
 import qualified Data.Vector as V
@@ -26,7 +25,6 @@ import qualified Data.Vector.Binary ()
 import GHC.Generics (Generic)
 
 import Yage.Geometry.Elements as Elements
-import Yage.Geometry.Vertex
 
 
 data Geometry v e = Geometry
