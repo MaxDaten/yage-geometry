@@ -24,7 +24,7 @@ main = do
     let name        = fpToText . basename $ importFile
         exportFile  = basename importFile <.> "ygm"
         ntGeo       = genSmoothings pGeo tGeo
-        ygm         = YGM.YGM name (packGeos YGM.vertexFormat pGeo tGeo ntGeo) :: YGM.YGM YGMVertex
+        ygm         = YGM.YGM name (packGeos3 YGM.vertexFormat pGeo tGeo ntGeo) :: YGM.YGM YGMVertex
 
     print $ "...export: " ++ show exportFile
     YGM.ygmToFile exportFile ygm

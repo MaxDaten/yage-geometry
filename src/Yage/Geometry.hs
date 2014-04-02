@@ -109,9 +109,11 @@ type PosAndTex pn txn a v = (IElem (Position3 pn a) v, IElem (Texture2 txn a) v)
 getShares :: Int -> V.Vector (Triangle Int) -> [Triangle Int]
 getShares i = V.toList . V.filter (any (==i))
 
-packGeos :: (Epsilon a, Floating a) 
+
+
+packGeos3 :: (Epsilon a, Floating a) 
          => (Pos a -> Tex a -> NT a -> v) -> TriGeo (Pos a) -> TriGeo (Tex a) -> TriGeo (NT a) -> TriGeo v
-packGeos format posG texG ntG 
+packGeos3 format posG texG ntG 
     | sameLength = error "can't merge geos, invalid number of elements"
     | otherwise =
         let mergedIdxs = V.zipWith3 mergeIndices (geoElements posG) (geoElements texG) (geoElements ntG) :: V.Vector (Triangle (Int, Int, Int))
@@ -133,6 +135,31 @@ packGeos format posG texG ntG
             lt = length $ geoElements texG
             ln = length $ geoElements ntG
         in lp /= lt || ln /= lt || lp /= ln
+
+
+
+packGeos2 :: (Epsilon a, Floating a) 
+         => (Pos a -> Tex a -> v) -> TriGeo (Pos a) -> TriGeo (Tex a) -> TriGeo v
+packGeos2 format posG texG 
+    | sameLength = error "can't merge geos, invalid number of elements"
+    | otherwise =
+        let mergedIdxs = V.zipWith mergeIndices (geoElements posG) (geoElements texG) :: V.Vector (Triangle (Int, Int))
+            vertices  = V.concatMap (V.fromList . toList . (fmap emitVertex)) mergedIdxs
+        in Geometry{geoVertices = vertices, geoElements = V.generate (length mergedIdxs) (\i -> Triangle (i*3) (i*3+1) (i*3+2))}
+    where
+
+    emitVertex (vertIdx, texIdx) =
+        format (verts V.! vertIdx) (texs V.! texIdx)
+
+    mergeIndices p tx = (,) <$> p <*> tx
+
+    verts = geoVertices posG
+    texs = geoVertices texG
+
+    sameLength =
+        let lp = length $ geoElements posG
+            lt = length $ geoElements texG
+        in lp /= lt
 
 
 
