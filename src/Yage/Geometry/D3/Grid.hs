@@ -1,6 +1,6 @@
 {-# LANGUAGE ParallelListComp #-}
 {-# LANGUAGE PackageImports #-}
-module Yage.Primitives.D3.Grid where
+module Yage.Geometry.D3.Grid where
 
 import Yage.Prelude hiding (Index, init, tail)
 
@@ -8,7 +8,7 @@ import Yage.Data.List (init, tail, chunksOf)
 
 import Yage.Math
 
-import Yage.Primitives.D3.Basic
+import Yage.Geometry.D3.Basic
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 

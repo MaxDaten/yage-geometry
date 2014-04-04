@@ -4,7 +4,7 @@
 name:                yage-geometry
 version:             0.0.0.1
 synopsis:            geometry for 3d rendering
--- description:         
+description:         currently not fledged out and in a very fluid shape
 license:             MIT
 license-file:        LICENSE
 author:              Jan-Philip Loos
@@ -31,23 +31,25 @@ Flag perf
 library
   hs-source-dirs:      src
 
-  exposed-modules:     Yage.Primitives
-                       Yage.Geometry
-                       Yage.Geometry.Vertex
-                       Yage.Geometry.Elements
-                       Yage.Geometry.Formats.Obj
-                       Yage.Geometry.Formats.Ygm
-                       Yage.Geometry.Formats.Obj.Parser
+  exposed-modules:    Yage.Geometry3D
+                      Yage.Geometry
+                      Yage.Geometry.Vertex
+                      Yage.Geometry.Elements
+                      Yage.Geometry.Formats.Obj
+                      Yage.Geometry.Formats.Ygm
+                      Yage.Geometry.Formats.Obj.Parser
   
-  other-modules:       Yage.Primitives.D3.Basic
-                       Yage.Primitives.D3.Cone
-                       Yage.Primitives.D3.Cube
-                       Yage.Primitives.D3.Grid
-                       Yage.Primitives.D3.Icosahedron
-                       Yage.Primitives.D3.Pyramid
-                       Yage.Primitives.D3.Quad
-                       Yage.Primitives.D3.Sphere
-  
+                      Yage.Geometry.D2.Rectangle
+                      
+                      Yage.Geometry.D3.Basic
+                      Yage.Geometry.D3.Cone
+                      Yage.Geometry.D3.Cube
+                      Yage.Geometry.D3.Grid
+                      Yage.Geometry.D3.Icosahedron
+                      Yage.Geometry.D3.Pyramid
+                      Yage.Geometry.D3.Quad
+                      Yage.Geometry.D3.Sphere
+                         
   build-depends:      base                    >= 4.7       && < 5
                     , yage-contrib            == 0.0.0.3
 
@@ -159,6 +161,33 @@ test-suite parsing-obj
     , yage-contrib
 
     , vector
+    
+    , hspec
+    , QuickCheck
+
+
+
+test-suite geometry2d-test
+  type:
+      exitcode-stdio-1.0
+  hs-source-dirs:
+      test
+  
+  main-is:
+      Geometry2d.hs
+
+  other-modules:
+      Test.Yage.Geometry.D2.Rectangle
+
+  ghc-options:
+      -Wall -Werror
+  default-language:    Haskell2010
+  default-extensions:  NoImplicitPrelude
+
+  build-depends:
+      base          == 4.*
+    , yage-geometry == 0.0.0.1
+    , yage-contrib
     
     , hspec
     , QuickCheck

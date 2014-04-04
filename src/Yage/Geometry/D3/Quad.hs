@@ -1,9 +1,9 @@
-module Yage.Primitives.D3.Quad where
+module Yage.Geometry.D3.Quad where
 
 import Yage.Prelude
 
 import Linear
-import Yage.Primitives.D3.Basic
+import Yage.Geometry.D3.Basic
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 

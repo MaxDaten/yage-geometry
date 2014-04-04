@@ -10,7 +10,7 @@
 {-# LANGUAGE DataKinds   #-}
 {-# LANGUAGE TypeFamilies   #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-module Yage.Primitives.D3.Basic where
+module Yage.Geometry.D3.Basic where
 
 import Yage.Prelude
 import Yage.Lens

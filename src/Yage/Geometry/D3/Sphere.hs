@@ -1,10 +1,10 @@
-module Yage.Primitives.D3.Sphere where
+module Yage.Geometry.D3.Sphere where
 
 import Yage.Prelude
 import Yage.Math
 
-import Yage.Primitives.D3.Basic
-import Yage.Primitives.D3.Icosahedron
+import Yage.Geometry.D3.Basic
+import Yage.Geometry.D3.Icosahedron
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 

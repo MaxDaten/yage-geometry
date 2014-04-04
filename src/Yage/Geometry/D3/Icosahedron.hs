@@ -1,11 +1,11 @@
-module Yage.Primitives.D3.Icosahedron where
+module Yage.Geometry.D3.Icosahedron where
 
 import Yage.Prelude hiding (init)
 import Yage.Math
 
 import Yage.Data.List (shift, init, transpose)
 
-import Yage.Primitives.D3.Basic
+import Yage.Geometry.D3.Basic
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 
