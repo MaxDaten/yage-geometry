@@ -39,6 +39,7 @@ library
                       Yage.Geometry.Formats.Ygm
                       Yage.Geometry.Formats.Obj.Parser
   
+                      Yage.Geometry.D2.Bound
                       Yage.Geometry.D2.Rectangle
                       
                       Yage.Geometry.D3.Basic

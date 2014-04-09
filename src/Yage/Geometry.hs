@@ -14,8 +14,8 @@ module Yage.Geometry
     ) where
 
 import Yage.Prelude hiding (sum, toList, any)
-import Yage.Math
 import Yage.Lens
+import Yage.Math
 
 import Data.Binary
 import Data.Foldable (toList, any)
