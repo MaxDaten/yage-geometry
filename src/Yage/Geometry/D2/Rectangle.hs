@@ -99,8 +99,8 @@ containsPoint rect pt = not $
     rect^.topLeft._x       > pt^._x   ||
     rect^.topLeft._y       < pt^._y   ||
     
-    rect^.bottomRight._y   > pt^._y   ||
-    rect^.bottomRight._x   < pt^._x
+    rect^.bottomRight._x   < pt^._x   ||
+    rect^.bottomRight._y   > pt^._y
 
 
 

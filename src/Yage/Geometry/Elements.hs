@@ -20,7 +20,6 @@ import Foreign.Ptr                     (castPtr)
 import Yage.Geometry.Vertex
 import Data.List                       ( iterate, (!!), head )
 import Data.Binary
-import GHC.Generics                    (Generic)
 import Yage.Math
 -- import Linear.Binary
 

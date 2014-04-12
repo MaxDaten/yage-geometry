@@ -8,12 +8,11 @@ import Yage.Math hiding (point)
 import Test.Hspec
 --import Test.QuickCheck
 
-import Data.Vinyl.Binary ()
+import Data.Vinyl.Instances ()
 import Data.Binary
 import qualified Data.Vector as V 
 import Yage.Geometry
 import Yage.Geometry.Vertex
-import Yage.Geometry.Formats.Ygm
 
 import System.Random
 import System.Directory
@@ -35,14 +34,14 @@ spec :: Spec
 spec = do
 --{--
   describe "Binary Point" $ do
-    it "write Point to Binary and read it back" $ do
+    it "writes Point to Binary and reads it back" $ do
       (decode . encode $ point) `shouldBe` point
 
 --}
 --{--
   
   describe "Binary Geometry" $ do
-    it "write Geo to Binary and read it back" $ do
+    it "writes Geo to Binary and reads it back" $ do
       verts   <- genVertices 100
       tris    <- genIdxTris 100 99
       let geo = Geometry (V.fromList verts) (V.fromList tris) 
@@ -52,7 +51,7 @@ spec = do
 --{--
 
   describe "Binary Geometry" $ do
-    it "write Geo to Binary file and read it back" $ do
+    it "writes Geo to Binary file and reads it back" $ do
       verts   <- genVertices 100
       tris    <- genIdxTris 100 99
       let file = "geo.tmp"
@@ -63,10 +62,10 @@ spec = do
       removeFile file
 
 --}
---{--
+{--
 
   describe "Binary YGM" $ do
-    it "write YGM to Binary file and read it back" $ do
+    it "writes YGM to Binary file and reads it back" $ do
       verts   <- genVertices 100
       tris    <- genIdxTris 100 99
       let file = "ygm.tmp"

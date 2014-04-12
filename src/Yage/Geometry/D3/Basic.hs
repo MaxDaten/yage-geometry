@@ -19,10 +19,6 @@ import Yage.Math
 import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 
-import GHC.Generics (Generic)
-
-
-
 
 ---------------------------------------------------------------------------------------------------
 -- Primitives

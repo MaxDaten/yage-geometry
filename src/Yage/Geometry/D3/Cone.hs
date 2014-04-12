@@ -1,6 +1,6 @@
 module Yage.Geometry.D3.Cone where
 
-import Yage.Prelude hiding (init)
+import Yage.Prelude
 
 import Yage.Data.List (shift, init)
 import Yage.Math

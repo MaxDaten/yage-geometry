@@ -22,8 +22,6 @@ import Data.Foldable (toList, any)
 import qualified Data.Vector as V
 import qualified Data.Vector.Binary ()
 
-import GHC.Generics (Generic)
-
 import Yage.Geometry.Elements as Elements
 
 

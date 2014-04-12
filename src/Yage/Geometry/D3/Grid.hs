@@ -2,7 +2,7 @@
 {-# LANGUAGE PackageImports #-}
 module Yage.Geometry.D3.Grid where
 
-import Yage.Prelude hiding (Index, init, tail)
+import Yage.Prelude hiding (Index)
 
 import Yage.Data.List (init, tail, chunksOf)
 

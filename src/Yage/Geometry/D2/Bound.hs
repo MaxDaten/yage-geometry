@@ -5,7 +5,7 @@ import Yage.Prelude
 import Yage.Math
 import Yage.Lens
 
-import Data.Foldable (or, and)
+import Data.Foldable (or)
 
 data Bound a = Bound
     { _center :: !(V2 a) 
@@ -23,14 +23,14 @@ height = extend._y
 topLeft :: ( Num a, Fractional a ) => Lens' (Bound a) (V2 a)
 topLeft = lens getter setter
     where
-    getter rect         = rect^.center - rect^.extend ^/ 2
-    setter rect tl = fromCorners tl (rect^.bottomRight)
+    getter rect     = rect^.center - V2 1 (-1) * rect^.extend ^/ 2
+    setter rect tl  = fromCorners tl (rect^.bottomRight)
 
 
 bottomRight :: ( Num a, Fractional a ) => Lens' (Bound a) (V2 a)
 bottomRight = lens getter setter
     where
-    getter rect     = rect^.center + rect^.extend ^/ 2
+    getter rect     = rect^.center + V2 1 (-1) * rect^.extend ^/ 2
     setter rect br  = fromCorners (rect^.topLeft) br
 
 
@@ -51,7 +51,7 @@ fromCorners :: ( Num a, Fractional a )
             -> Bound a
 fromCorners tl br =
     let e = br - tl
-        c = tl + e ^/ 2
+        c = tl + V2 1 (-1) * e ^/ 2
     in Bound c e
 
 
@@ -100,10 +100,12 @@ containsPoint rect pt =
     in not.or $ liftI2 (>) centerDiff (rect^.extend ^/ 2)
 
 
-containsBound :: ( Num a, Ord a ) => Bound a -> Bound a -> Bool
-containsBound outerRect innerRect = 
-    let centerDiff = abs <$> innerRect^.center - outerRect^.center
-        compExtend = innerRect^.extend + outerRect^.extend
-    in and $ liftI2 (<=) centerDiff compExtend
+containsBound :: ( Num a, Ord a, Fractional a ) => Bound a -> Bound a -> Bool
+containsBound outerRect innerRect = not $
+    outerRect^.topLeft._x     > innerRect^.topLeft._x       ||
+    outerRect^.topLeft._y     < outerRect^.topLeft._y       ||
+
+    outerRect^.bottomRight._y > innerRect^.bottomRight._y   ||
+    outerRect^.bottomRight._x < innerRect^.bottomRight._x
 
 

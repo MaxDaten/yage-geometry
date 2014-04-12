@@ -1,6 +1,6 @@
 module Yage.Geometry.D3.Icosahedron where
 
-import Yage.Prelude hiding (init)
+import Yage.Prelude
 import Yage.Math
 
 import Yage.Data.List (shift, init, transpose)
