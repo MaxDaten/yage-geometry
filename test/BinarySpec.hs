@@ -6,7 +6,6 @@ import Yage.Prelude
 import Yage.Math hiding (point)
 
 import Test.Hspec
---import Test.QuickCheck
 
 import Data.Vinyl.Instances ()
 import Data.Binary

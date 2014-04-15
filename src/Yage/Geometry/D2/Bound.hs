@@ -56,7 +56,6 @@ fromCorners tl br =
 
 
 
-
 translate :: Num a => Bound a -> V2 a -> Bound a
 translate r trans = r & center +~ trans
 
