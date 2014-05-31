@@ -2,39 +2,24 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE RecordWildCards    #-}
-{-# LANGUAGE TupleSections      #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE RankNTypes   #-}
-{-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE DataKinds   #-}
-{-# LANGUAGE TypeFamilies   #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE LambdaCase   #-}
 module Yage.Geometry.D3.Basic where
 
 import Yage.Prelude
 import Yage.Lens
-import Yage.Math
 
-import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 
 
 ---------------------------------------------------------------------------------------------------
 -- Primitives
 
+
 data Primitive v = 
       Cone         { _coneMantle    :: [Triangle v]
                    , _coneBase      :: [Triangle v]
                    }
-    
-    | Cube         { _cubeRight     :: Face v        -- GL_TEXTURE_CUBE_MAP_POSITIVE_X​
-                   , _cubeLeft      :: Face v        -- GL_TEXTURE_CUBE_MAP_NEGATIVE_X​
-                   , _cubeTop       :: Face v        -- GL_TEXTURE_CUBE_MAP_POSITIVE_Y​
-                   , _cubeBottom    :: Face v        -- GL_TEXTURE_CUBE_MAP_NEGATIVE_Y​
-                   , _cubeFront     :: Face v        -- GL_TEXTURE_CUBE_MAP_POSITIVE_Z​
-                   , _cubeBack      :: Face v        -- GL_TEXTURE_CUBE_MAP_NEGATIVE_Z​
-                   } 
     
     | Grid         { _gridSections  :: [Face v] }
     
@@ -56,38 +41,8 @@ data Primitive v =
 makeLenses ''Primitive
 
 
-calculateNormals :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v) 
-                 => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Primitive (Vertex v) -> Primitive (Vertex vn)
-calculateNormals pos norm smooth primitive = 
-  let triangleNorm = calcTriangleNormal pos norm
-      faceNorm     = calcFaceNormal pos norm
-  in calc triangleNorm faceNorm primitive
-  where
-    calc triangleNorm _        Cone{..}        = Cone (fmap (triangleNorm smooth) _coneMantle) (fmap (triangleNorm FacetteNormals) _coneBase)
-    calc _            faceNorm Cube{..}        = Cube 
-                                                    ( faceNorm _cubeRight ) (faceNorm _cubeLeft   )
-                                                    ( faceNorm _cubeTop   ) (faceNorm _cubeBottom )
-                                                    ( faceNorm _cubeFront ) (faceNorm _cubeBack   )
-    calc triangleNorm _        Icosahedron{..} = Icosahedron 
-                                                    ( fmap (triangleNorm smooth) _icoTop )
-                                                    ( fmap (triangleNorm smooth) _icoMiddle )
-                                                    ( fmap (triangleNorm smooth) _icoBottom )
-                                              
-    calc _            faceNorm Grid{..}        = Grid $ faceNorm <$> _gridSections
-    calc triangleNorm _        Pyramid{..}     = Pyramid 
-                                                    ( fmap (triangleNorm smooth) _pyramidMantle )
-                                                    ( fmap (triangleNorm smooth) _pyramidBase )
-    calc _            faceNorm Quad{..}        = Quad $ faceNorm _quadFace
-    calc triangleNorm _        GeoSphere{..}   = GeoSphere $ fmap (triangleNorm smooth) _geoSphereTris
--- calculateNormals _ _ _ _ = error "calculateNormals: unsupported primitive"
-
-
-
 instance HasTriangles Primitive where
   triangles Cone{..}        = _coneMantle ++ _coneBase
-  triangles Cube{..}        = triangles _cubeRight ++ triangles _cubeLeft ++
-                              triangles _cubeTop   ++ triangles _cubeBottom ++
-                              triangles _cubeFront ++ triangles _cubeBack
   triangles Icosahedron{..} = _icoTop ++ _icoMiddle ++ _icoBottom
   triangles Pyramid{..}     = _pyramidMantle ++ _pyramidBase
   triangles Quad{..}        = triangles _quadFace
@@ -99,3 +54,11 @@ instance HasTriangles Primitive where
 instance HasLines Primitive where
   toLines p = concatMap toLines $ triangles p
 
+primitveSurfaces :: Primitive v -> [Surface (Triangle v)]
+primitveSurfaces = \case
+  Cone{..}          -> Surface <$> [_coneMantle, _coneBase]
+  Grid{..}          -> singleton $ Surface $ concatMap triangles _gridSections
+  Icosahedron{..}   -> singleton $ Surface $ concat [_icoTop, _icoMiddle, _icoBottom] 
+  Pyramid{..}       -> Surface <$> [_pyramidMantle, _pyramidBase]
+  Quad{..}          -> singleton $ Surface $ triangles _quadFace
+  GeoSphere{..}     -> singleton $ Surface $ _geoSphereTris

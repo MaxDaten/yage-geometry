@@ -28,23 +28,20 @@ import Yage.Math
 ---------------------------------------------------------------------------------------------------
 -- Basic Types
 
-data Triangle v = Triangle v v v
-  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
+data Face v = Face !v !v !v !v
+  deriving ( Show, Eq, Ord, Functor, Foldable, Traversable, Generic )
 
-data Face v = Face v v v v
-  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
+data Triangle v = Triangle !v !v !v
+  deriving ( Show, Eq, Ord, Functor, Foldable, Traversable, Generic )
 
-data Line v = Line v v
-  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
+data Line v = Line !v !v
+  deriving ( Show, Eq, Ord, Functor, Foldable, Traversable, Generic )
 
-data Point v = Point v
-  deriving ( Show, Eq, Functor, Foldable, Traversable, Generic )
+data Point v = Point !v
+  deriving ( Show, Eq, Ord, Functor, Foldable, Traversable, Generic )
 
-
---data Surface v = Surface [Face v]
---  deriving ( Functor, Foldable, Traversable )
-
-data NormalSmoothness = FacetteNormals | SphericalNormals
+newtype Surface v = Surface { getSurface :: [v] }
+  deriving ( Show, Eq, Ord, Functor, Foldable, Traversable, Generic )
 
 
 class HasTriangles p where
@@ -73,25 +70,10 @@ vertices :: forall a (t :: * -> *) (t1 :: * -> *).
 vertices p = p^..traverse.traverse
 
 
---calcFaceNormal :: (vn ~ (v ++ '[Normal3 nn a]), Epsilon a, Floating a, Implicit (Elem (Position3 pn a) v), Implicit (Elem (Position3 pn a) vn), Implicit (Elem (Normal3 nn a) vn)) => Face (Vertex v) -> Face (Vertex vn)
-calcFaceNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
-              => Position3 pn a -> Normal3 nn a -> Face (Vertex v) -> Face (Vertex vn)
-calcFaceNormal posF normF face@(Face a b c _) =
-  let (n, _, _) = plainNormalForm (rGet posF c) (rGet posF b) (rGet posF a)
-  in fmap (<+> normF =: n) face
 
+class HasSurfaces p where
+  surfaces :: p v -> [Surface v]
 
-
-
-calcTriangleNormal :: (Epsilon a, Floating a, vn ~ (v ++ '[Normal3 nn a]), IElem (Position3 pn a) v)
-                  => Position3 pn a -> Normal3 nn a -> NormalSmoothness -> Triangle (Vertex v) -> Triangle (Vertex vn)
-calcTriangleNormal posF normF FacetteNormals t@(Triangle a b c) = 
-  let (n, _, _) = plainNormalForm (rGet posF c) (rGet posF b) (rGet posF a)
-  in fmap (<+> normF =: n) t
-calcTriangleNormal posF normF SphericalNormals (Triangle a b c) =
-   Triangle (a <+> normF =: normalize (rGet posF a)) 
-            (b <+> normF =: normalize (rGet posF b)) 
-            (c <+> normF =: normalize (rGet posF c)) 
 
 
 triangleNormal :: (Epsilon a, Floating a)
@@ -143,11 +125,11 @@ instance Applicative Line where
 
 instance Applicative Triangle where
     pure v = Triangle v v v
-    (Triangle fa fb fc) <*> (Triangle a b c) = Triangle (fa a) (fb b) (fc c) 
+    (Triangle fa fb fc) <*> (Triangle a b c) = Triangle (fa a) (fb b) (fc c)
 
 instance Applicative Face where
     pure v = Face v v v v
-    (Face fa fb fc fd) <*> (Face a b c d) = (Face (fa a) (fb b) (fc c) (fd d))  
+    (Face fa fb fc fd) <*> (Face a b c d) = ( Face (fa a) (fb b) (fc c) (fd d) )
 
 
 instance (Binary e) => Binary (Triangle e)
