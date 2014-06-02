@@ -18,7 +18,7 @@ import Yage.Lens
 import Yage.Math
 
 import Data.Binary
-import Data.Foldable (any)
+import Data.Foldable (any, toList)
 import qualified Data.Vector as V
 import qualified Data.Vector.Binary ()
 
@@ -32,6 +32,7 @@ data Geometry e v = Geometry
 
 type TriGeo = Geometry (Triangle Int)
 
+-- | constructs a Geo from vertices, interpreted as triangles and without reindexing
 makeSimpleTriGeo :: V.Vector v -> TriGeo v
 makeSimpleTriGeo verts = Geometry verts simpleIxs
     where
@@ -40,26 +41,34 @@ makeSimpleTriGeo verts = Geometry verts simpleIxs
                                         (V.generate triCnt (\i -> i*3+1))
                                         (V.generate triCnt (\i -> i*3+2))
 
+makeSimpleTriGeo' :: ( HasTriangles t, Foldable f ) => f (t v) -> TriGeo v
+makeSimpleTriGeo' = makeSimpleTriGeo . V.concatMap (V.fromList . vertices) . V.map triangles . V.fromList . toList
+
+{--
+indexedSurface :: Eq v => Surface (Triangle v) -> TriGeo v
+indexedSurface triSurf = 
+    let surfVec = V.fromList $ nub $ concatMap vertices $ getSurface triSurf
+    in Geometry { geoVerices  = undefined
+                , geoElements = undefined
+                }
+--}
+
+
 type Pos       = V3
 type Normal    = V3
 type Tex       = V2
 type TBN a     = M33 a
 
 
-calcTangentSpaces :: ( Show a, Epsilon a, Floating a) => 
+calcTangentSpaces :: ( Epsilon a, Floating a ) => 
               TriGeo (Pos a) ->
               TriGeo (Tex a) -> 
               TriGeo (TBN a)
 calcTangentSpaces posGeo texGeo = calcTangentSpaces' posGeo texGeo $ calcNormals posGeo
 
 
-{--
-fakeTangents :: ( Epsilon a, Floating a )
-              => TriGeo (Tex a) -> TriGeo (Normal a) -> TriGeo (NT a)
-fakeTangents texGeo normGeo = normGeo { geoVertices = V.map ((, (V3 0 0 1)))  (geoVertices normGeo) }
---}
 
-calcNormals :: ( Show a, Epsilon a, Floating a)
+calcNormals :: ( Epsilon a, Floating a )
             => TriGeo (Pos a) -> TriGeo (Normal a)
 calcNormals geo =
     geo{ geoVertices = V.imap (\i _ -> calcAvgNorm i) verts }

@@ -45,7 +45,7 @@ newtype Surface v = Surface { getSurface :: [v] }
 
 
 class HasTriangles p where
-  triangles :: Functor p => p v -> [Triangle v]
+  triangles :: p v -> [Triangle v]
 
 instance HasTriangles Face where
   triangles (Face a b c d) = [Triangle a b c, Triangle a c d]
@@ -56,7 +56,7 @@ instance HasTriangles Triangle where
 
 
 class HasLines p where
-  toLines :: Functor p => p v -> [Line v]
+  toLines :: p v -> [Line v]
 
 instance HasLines Triangle where
   toLines (Triangle a b c) = [Line a b, Line b c, Line c a]

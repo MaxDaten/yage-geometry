@@ -10,11 +10,8 @@ import Yage.Prelude hiding (Index, (<$$>), toList)
 import Yage.Lens
 
 import Data.Foldable       (toList)
-import Control.Applicative hiding ((<**>))
 
 import Linear (V2(..), V3(..))
---import Yage.Geometry.D3.Basic
-import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 
 ---------------------------------------------------------------------------------------------------
@@ -28,17 +25,19 @@ data Cube v = Cube
   , _cubeBack      :: v -- GL_TEXTURE_CUBE_MAP_NEGATIVE_Z​
   } deriving ( Show, Functor, Foldable, Traversable, Generic )
 
+makeLenses ''Cube
 
-type CubeUV pn tn a = Cube (Face (Vertex (P3T2 pn tn a)))
+type CubePos a = Cube (Face (V3 a))
+type CubeUV a  = Cube (Face (V2 a))
 
-cubePos :: Fractional a => V3 a -> Cube (Face (V3 a))
+cubePos :: Fractional a => V3 a -> CubePos a
 cubePos dim = 
   let V3 x y z = dim / 2.0
   in Cube
     { _cubeRight     = Face ( V3   x    y    z  )
                             ( V3   x  (-y)   z  )
                             ( V3   x  (-y) (-z) )
-                            ( V3    x   y  (-z) )
+                            ( V3   x    y  (-z) )
     
     , _cubeLeft      = Face ( V3 (-x)   y  (-z) )
                             ( V3 (-x) (-y) (-z) )
@@ -66,31 +65,13 @@ cubePos dim =
                             ( V3 (-x)   y  (-z) )
     }
 
-makeLenses ''Cube
 
 -- | creates one UV set for all faces
 -- only matches to the cubePos order of positions
-cubeSingleUV :: Fractional a => Cube (Face (V2 a))
+cubeSingleUV :: Fractional a => CubeUV a
 cubeSingleUV =
   let uvFace = Face (V2 0 1) (V2 0 0) (V2 1 0) (V2 1 1)
   in Cube uvFace uvFace uvFace uvFace uvFace uvFace
-
-
-cubeWithUV :: (Fractional a) => Cube (Face (V2 a)) -> V3 a -> CubeUV pn tn a
-cubeWithUV cubeUV dim =
-  let cube = cubePos dim
-  in merge <$$> cube <**> cubeUV
-  where
-  merge :: (Fractional a, v ~ Vertex (P3T2 pn tn a)) => V3 a -> V2 a -> v
-  merge p t = position3 =: p <+> 
-              texture2  =: t
-  
-  (<**>) = liftA2 (<*>)
-  f <$$> x = liftA2 (<$>) (pure f) x
-
-
-defaultCube :: Fractional a => V3 a -> CubeUV pn tn a
-defaultCube = cubeWithUV cubeSingleUV
 
 
 instance Applicative Cube where
@@ -99,9 +80,12 @@ instance Applicative Cube where
     = Cube (fa a) (fb b) (fc c) (fd d) (fe e) (fg g)
 
 
-instance Fractional a => Default (CubeUV pn tn a) where
-  def = defaultCube 1
+instance Fractional a => Default (CubePos a) where
+  def = cubePos 1
+
+instance Fractional a => Default (CubeUV a) where
+  def = cubeSingleUV
 
 instance HasSurfaces Cube where
-  surfaces cube = Surface . singleton <$> toList cube
+  surfaces = fmap (Surface . singleton) . toList
 
