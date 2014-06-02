@@ -59,10 +59,10 @@ cubePos dim =
                             ( V3   x  (-y)   z  )
                             ( V3   x    y    z  )
     
-    , _cubeBack      = Face ( V3   x    y  (-z) )
-                            ( V3   x  (-y) (-z) )
-                            ( V3 (-x) (-y) (-z) )
+    , _cubeBack      = Face ( V3 (-x) (-y) (-z) )
                             ( V3 (-x)   y  (-z) )
+                            ( V3   x    y  (-z) )
+                            ( V3   x  (-y) (-z) )
     }
 
 
