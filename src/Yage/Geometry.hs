@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE TupleSections  #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 
 module Yage.Geometry
     ( module Yage.Geometry
@@ -14,9 +15,9 @@ module Yage.Geometry
     ) where
 
 import Yage.Prelude hiding (sum, toList, any)
-import Yage.Lens
 import Yage.Math
 
+import Control.Applicative (liftA2)
 import Data.Binary
 import Data.Foldable (any, toList)
 import qualified Data.Vector as V
@@ -88,26 +89,17 @@ calcTangentSpaces' posGeo texGeo normGeo =
     normGeo{ geoVertices = V.imap calcTangentSpace ( geoVertices normGeo ) }
     where
     
-    calcTangentSpace i n = 
-        let normIndexFilter = any ((==i) . snd)
-            (V2 t b)        = V.sum $ V.map (triTangentSpace . toNormTexTri) $ V.filter normIndexFilter texNormIdx
+    calcTangentSpace i n =
+        let ~(V3 t b _n) = V.sum $ V.map (uncurry triangleTangentSpace . toNormTexTri) $ V.filter (shareNormalIndex i) normalWithTexIdx
         in orthonormalize $ V3 t b n
 
-    triTangentSpace tri =
-        let Triangle pos0 pos1 pos2 = fmap snd tri
-            Triangle st0 st1 st2    = fmap fst tri
-            
-            deltaPos1 = pos1 - pos0
-            deltaPos2 = pos2 - pos0
-            deltaUV1  = st1 - st0
-            deltaUV2  = st2 - st0
-            d = 1.0 / ( deltaUV1^._x * deltaUV2^._y - deltaUV1^._y * deltaUV2^._x )
-            t = ( deltaPos1 ^* ( deltaUV2^._y ) - deltaPos2 ^* ( deltaUV1^._y ) ) ^* d
-            b = ( deltaPos2 ^* ( deltaUV1^._x ) - deltaPos1 ^* ( deltaUV2^._x ) ) ^* d
-        in V2 t b
+    toNormTexTri tri = (V.unsafeIndex (geoVertices posGeo) . fst <$> tri, V.unsafeIndex (geoVertices texGeo) . snd <$> tri) 
 
-    toNormTexTri = fmap (\(ti, ni) -> ((geoVertices texGeo) V.! ti, (geoVertices posGeo) V.! ni))
-    texNormIdx = V.zipWith (\triT triN -> (,) <$> triT <*> triN) (geoElements texGeo) (geoElements normGeo)
+    shareNormalIndex :: Int -> Triangle (Int, Int) -> Bool
+    shareNormalIndex i = any ((==i) . fst)
+    
+    normalWithTexIdx :: V.Vector (Triangle (Int, Int))
+    normalWithTexIdx = V.zipWith (liftA2 (,)) (geoElements normGeo) (geoElements texGeo)
 
 getShares :: Int -> V.Vector (Triangle Int) -> [Triangle Int]
 getShares i = V.toList . V.filter (any (==i))

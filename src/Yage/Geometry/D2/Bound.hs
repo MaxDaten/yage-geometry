@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 module Yage.Geometry.D2.Bound where
 
-import Yage.Prelude
+import Yage.Prelude hiding (or)
 import Yage.Math
 import Yage.Lens
 

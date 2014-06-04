@@ -6,7 +6,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 module Yage.Geometry.D3.Cube where
 
-import Yage.Prelude hiding (Index, (<$$>), toList)
+import Yage.Prelude hiding (Index, toList)
 import Yage.Lens
 
 import Data.Foldable       (toList)

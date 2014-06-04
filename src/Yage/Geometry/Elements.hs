@@ -97,8 +97,8 @@ flipFace (Face a b c d) = Face d c b a
 
 
 
-cut :: (Num a, Epsilon a, Floating a)
-    => a -> Position3 pn a -> Triangle (Vertex (P3 pn a)) -> [Triangle (Vertex (P3 pn a))]
+cut :: (Epsilon a, Floating a) => 
+    a -> Position3 pn a -> Triangle (Vertex (P3 pn a)) -> [Triangle (Vertex (P3 pn a))]
 cut r pos (Triangle a b c) = [Triangle a ab ac, Triangle b bc ab, Triangle c ac bc, Triangle ab bc ac]
     where ab = pos =: (hr *^ normalize (rGet pos a + rGet pos b))
           bc = pos =: (hr *^ normalize (rGet pos b + rGet pos c))
@@ -112,6 +112,22 @@ triangulate iter pos src = iterate subdivide src !! iter
     where subdivide      = concatMap cutR
           cutR           = cut (norm . fst3 . head $ src) pos
           fst3 (Triangle a _ _) = rGet pos a
+
+
+
+triangleTangentSpace :: (Epsilon a, Floating a) => Triangle (V3 a) -> Triangle (V2 a) -> M33 a
+triangleTangentSpace pos tex =
+    let Triangle pos0 pos1 pos2 = pos
+        Triangle st0 st1 st2    = tex
+        
+        deltaPos1 = pos1 - pos0
+        deltaPos2 = pos2 - pos0
+        deltaUV1  = st1 - st0
+        deltaUV2  = st2 - st0
+        d = 1.0 / ( deltaUV1^._x * deltaUV2^._y - deltaUV1^._y * deltaUV2^._x )
+        t = ( deltaPos1 ^* deltaUV2^._y - deltaPos2 ^* deltaUV1^._y ) ^* d
+        b = ( deltaPos2 ^* deltaUV1^._x - deltaPos1 ^* deltaUV2^._x ) ^* d
+    in V3 t b (triangleNormal pos)
 
 
 
