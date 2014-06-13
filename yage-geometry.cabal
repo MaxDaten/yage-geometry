@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                yage-geometry
-version:             0.0.0.1
+version:             0.0.0.2
 synopsis:            geometry for 3d rendering
 description:         currently not fledged out and in a very fluid shape
 license:             MIT
@@ -58,6 +58,9 @@ library
                     , vector                  >= 0.10
                     , vector-binary-instances
                     , binary                  == 0.7.*
+
+                    , deepseq                 == 1.3.*
+                    , deepseq-generics        == 0.1.*
 
 
   default-language:    Haskell2010
