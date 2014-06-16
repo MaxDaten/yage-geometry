@@ -29,14 +29,14 @@ import Control.DeepSeq
 import Control.DeepSeq.Generics
 
 
-import Yage.Geometry.Elements as Elements hiding (Surface)
+import Yage.Geometry.Elements as Elements
 
-type Surface e = Vector e
+type GeoSurface e = Vector e
 
 data Geometry e v = Geometry
     { _geoVertices :: Vector v
     -- ^ all vertices of this geometry
-    , _geoSurfaces :: Vector (Surface e)
+    , _geoSurfaces :: Vector (GeoSurface e)
     -- ^ list of surfaces of the geometry. defined by objects (like Triangle Int) with indices to `geoVertices`
     } deriving ( Show, Eq, Ord, Functor, Foldable, Traversable, Generic )
 
@@ -58,6 +58,10 @@ makeSimpleTriGeo verts = Geometry verts simpleIxs
 -- | like `makeSimpleTriGeo` but extracts vertices from a `Foldable`
 makeSimpleTriGeoF :: ( HasTriangles t, Foldable f ) => f (t v) -> TriGeo v
 makeSimpleTriGeoF = makeSimpleTriGeo . V.concatMap (V.fromList . vertices) . V.map triangles . V.fromList . toList
+
+
+empty :: Geometry e v
+empty = Geometry V.empty V.empty
 
 {--
 indexedSurface :: Eq v => Surface (Triangle v) -> TriGeo v
@@ -130,7 +134,7 @@ calcTangentSpaces' posGeo texGeo normGeo
             idxTri      = Triangle idx (idx + 1) (idx + 2)
         in (vertsAccum ++ (V.fromList . toList $ tbnTriangle), surfaceAccum `V.snoc` idxTri)
 
-    pntIdxs :: Vector (Surface (Triangle (Int, Int, Int)))
+    pntIdxs :: Vector (GeoSurface (Triangle (Int, Int, Int)))
     pntIdxs = V.zipWith3 (V.zipWith3 (liftA3 (,,))) (posGeo^.geoSurfaces) (normGeo^.geoSurfaces) (texGeo^.geoSurfaces)
 
     toPNTTri :: ( Epsilon a, Floating a) => Triangle (Int, Int, Int) -> (Triangle (Pos a), Triangle (Normal a), Triangle (Tex a))
@@ -139,7 +143,7 @@ calcTangentSpaces' posGeo texGeo normGeo
                    , V.unsafeIndex (texGeo^.geoVertices)  . (^._3) <$> tri
                    ) 
 
-    calcTangentSpace :: ( Epsilon a, Floating a) => Surface (Triangle (Int, Int, Int)) -> (Int, Int, Int) -> M33 a
+    calcTangentSpace :: ( Epsilon a, Floating a) => GeoSurface (Triangle (Int, Int, Int)) -> (Int, Int, Int) -> M33 a
     calcTangentSpace surface (posIdx, normIdx, _texIdx) =
         let normal          = V.unsafeIndex (normGeo^.geoVertices) normIdx
             toPTTri (p,_,t) = (p,t)
