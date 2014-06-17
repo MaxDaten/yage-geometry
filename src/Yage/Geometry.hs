@@ -22,7 +22,7 @@ import Yage.Math
 import Control.Applicative (liftA3)
 import Data.Binary
 import Data.Foldable (any, toList)
-import Data.Vector (Vector, (++))
+import Data.Vector ((++))
 import qualified Data.Vector as V
 import qualified Data.Vector.Binary ()
 import Control.DeepSeq
@@ -80,7 +80,7 @@ type TBN a     = M33 a
 
 
 -- | calc tangent spaces for each triangle. averages for normals and tangents are calculated on surfaces
-calcTangentSpaces :: ( Epsilon a, Floating a, Show a ) => 
+calcTangentSpaces :: ( Epsilon a, Floating a ) => 
     TriGeo (Pos a) ->
     TriGeo (Tex a) -> 
     TriGeo (TBN a)
@@ -89,9 +89,9 @@ calcTangentSpaces posGeo texGeo =
 
 
 
-calcNormals :: ( Epsilon a, Floating a, Show a )
+calcNormals :: ( Epsilon a, Floating a )
             => TriGeo (Pos a) -> TriGeo (Normal a)
-calcNormals geo = traceShowS' "x" $ uncurry Geometry normalsOverSurfaces 
+calcNormals geo = uncurry Geometry normalsOverSurfaces 
     where
     normalsOverSurfaces = V.foldl' normalsForSurface (V.empty, V.empty) (geo^.geoSurfaces)
     
@@ -113,14 +113,14 @@ calcNormals geo = traceShowS' "x" $ uncurry Geometry normalsOverSurfaces
 
 
 
-calcTangentSpaces' :: forall a. ( Epsilon a, Floating a, Show a) =>
+calcTangentSpaces' :: forall a. ( Epsilon a, Floating a ) =>
     TriGeo (Pos a) ->
     TriGeo (Tex a) ->
     TriGeo (Normal a) -> 
     TriGeo (TBN a)
 calcTangentSpaces' posGeo texGeo normGeo
     | not compatibleSurfaces = error "calcTangentSpaces': surfaces doesn't match"
-    | otherwise = traceShowS' "y" $ uncurry Geometry tbnOverSurfaces
+    | otherwise = uncurry Geometry tbnOverSurfaces
 
 
     where
@@ -141,7 +141,7 @@ calcTangentSpaces' posGeo texGeo normGeo
            (vertsAccum ++ (V.fromList . toList $ tbnTriangle), surfaceAccum `V.snoc` idxTri )
 
     pntIdxs :: Vector (GeoSurface (Triangle (Int, Int, Int)))
-    pntIdxs = traceShowId $ V.zipWith3 (V.zipWith3 (liftA3 (,,))) (traceShowId $ posGeo^.geoSurfaces) (traceShowId $ normGeo^.geoSurfaces) (traceShowId $ texGeo^.geoSurfaces)
+    pntIdxs = V.zipWith3 (V.zipWith3 (liftA3 (,,))) (posGeo^.geoSurfaces) (normGeo^.geoSurfaces) (texGeo^.geoSurfaces)
 
     toPNTTri :: ( Epsilon a, Floating a) => Triangle (Int, Int, Int) -> (Triangle (Pos a), Triangle (Normal a), Triangle (Tex a))
     toPNTTri tri = ( V.unsafeIndex (posGeo^.geoVertices)  . (^._1) <$> tri
@@ -159,25 +159,11 @@ calcTangentSpaces' posGeo texGeo normGeo
         in orthonormalize $ V3 t b normal
 
     compatibleSurfaces = 
-        let posSurfaces  = traceShowS' "y" $ posGeo^.geoSurfaces^..traverse.to length
-            texSurfaces  = traceShowS' "y" $ texGeo^.geoSurfaces^..traverse.to length
-            normSurfaces = traceShowS' "y " $ normGeo^.geoSurfaces^..traverse.to length
+        let posSurfaces  = posGeo^.geoSurfaces^..traverse.to length
+            texSurfaces  = texGeo^.geoSurfaces^..traverse.to length
+            normSurfaces = normGeo^.geoSurfaces^..traverse.to length
         in posSurfaces == texSurfaces && posSurfaces == normSurfaces
-{--
-    normGeo{ geoVertices = V.imap calcTangentSpace ( geoVertices normGeo ) }
-    where
-    
-    calcTangentSpace i n =
-        let ~(V3 t b _n) = V.sum $ V.map (uncurry triangleTangentSpace . toNormTexTri) $ V.filter (shareNormalIndex i) normalWithTexIdx
-        in orthonormalize $ V3 t b n
 
-
-    shareNormalIndex :: Int -> Triangle (Int, Int) -> Bool
-    shareNormalIndex i = any ((==i) . fst)
-    
-    normalWithTexIdx :: V.Vector (Triangle (Int, Int))
-    normalWithTexIdx = V.zipWith (liftA2 (,)) (geoElements normGeo) (geoElements texGeo)
---}
 
 getShares :: Int -> Vector (Triangle Int) -> Vector (Triangle Int)
 getShares i = V.filter (any (==i))
