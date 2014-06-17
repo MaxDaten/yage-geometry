@@ -80,7 +80,7 @@ type TBN a     = M33 a
 
 
 -- | calc tangent spaces for each triangle. averages for normals and tangents are calculated on surfaces
-calcTangentSpaces :: ( Epsilon a, Floating a ) => 
+calcTangentSpaces :: ( Epsilon a, Floating a, Show a ) => 
     TriGeo (Pos a) ->
     TriGeo (Tex a) -> 
     TriGeo (TBN a)
@@ -89,21 +89,23 @@ calcTangentSpaces posGeo texGeo =
 
 
 
-calcNormals :: ( Epsilon a, Floating a )
+calcNormals :: ( Epsilon a, Floating a, Show a )
             => TriGeo (Pos a) -> TriGeo (Normal a)
-calcNormals geo = uncurry Geometry normalsOverSurfaces 
+calcNormals geo = traceShowS' "x" $ uncurry Geometry normalsOverSurfaces 
     where
-    normalsOverSurfaces = V.foldr normalsForSurface (V.empty, V.empty) (geo^.geoSurfaces)
+    normalsOverSurfaces = V.foldl' normalsForSurface (V.empty, V.empty) (geo^.geoSurfaces)
     
-    normalsForSurface surface (normsAccum, surfacesAccum) = 
-        let (normVerts, normedSurface) = V.foldr (normalsForTriangle surface) (normsAccum, V.empty) surface
-        in (normVerts, surfacesAccum `V.snoc` normedSurface)
+    normalsForSurface (normsAccum, surfacesAccum) surface = 
+        let (normVerts, normedSurface) = V.foldl' (normalsForTriangle surface) (normsAccum, V.empty) surface
+        in (normVerts, surfacesAccum `V.snoc` normedSurface )
     
-    normalsForTriangle inSurface triangle (vertsAccum, surfaceAccum) =
+    normalsForTriangle inSurface (vertsAccum, surfaceAccum) triangle =
         let normedTri = fmap (calcAvgNorm inSurface) triangle
             idx       = V.length vertsAccum
             idxTri    = Triangle idx (idx + 1) (idx + 2)
-        in (vertsAccum ++ (V.fromList . toList $ normedTri), surfaceAccum `V.snoc` idxTri)
+        in vertsAccum   `seq`
+           surfaceAccum `seq`
+           (vertsAccum ++ (V.fromList . toList $ normedTri), surfaceAccum `V.snoc` idxTri)
 
     posVerts                = geo^.geoVertices
     calcAvgNorm surface idx = averageNorm $ V.map (triangleUnnormal . toPosTri) $ getShares idx surface
@@ -111,31 +113,35 @@ calcNormals geo = uncurry Geometry normalsOverSurfaces
 
 
 
-calcTangentSpaces' :: forall a. ( Epsilon a, Floating a) =>
+calcTangentSpaces' :: forall a. ( Epsilon a, Floating a, Show a) =>
     TriGeo (Pos a) ->
     TriGeo (Tex a) ->
     TriGeo (Normal a) -> 
     TriGeo (TBN a)
 calcTangentSpaces' posGeo texGeo normGeo
-    | V.length (posGeo^.geoSurfaces) /= V.length (texGeo^.geoSurfaces) ||
-      V.length (texGeo^.geoSurfaces) /= V.length (normGeo^.geoSurfaces) = error "calcTangentSpaces': invalid geos"
-    | otherwise = uncurry Geometry tbnOverSurfaces
+    | not compatibleSurfaces = error "calcTangentSpaces': surfaces doesn't match"
+    | otherwise = traceShowS' "y" $ uncurry Geometry tbnOverSurfaces
 
 
     where
-    tbnOverSurfaces = V.foldr tbnForSurface (V.empty, V.empty) pntIdxs
-    tbnForSurface surface (tbnAccum, surfacesAccum) = 
-        let (tbnVerts, tbnSurface) = V.foldr (tbnForTriangle surface) (tbnAccum, V.empty) surface
-        in (tbnVerts, surfacesAccum `V.snoc` tbnSurface)
+    tbnOverSurfaces = V.foldl' tbnForSurface (V.empty, V.empty) pntIdxs
+    
+    tbnForSurface (tbnAccum, surfacesAccum) surface = 
+        let (tbnVerts, tbnSurface) = V.foldl' (tbnForTriangle surface) (tbnAccum, V.empty) surface
+        in tbnVerts      `seq`
+           surfacesAccum `seq`
+           (tbnVerts, surfacesAccum `V.snoc` tbnSurface )
 
-    tbnForTriangle inSurface triangle (vertsAccum, surfaceAccum) = 
+    tbnForTriangle inSurface (vertsAccum, surfaceAccum) triangle = 
         let tbnTriangle = fmap (calcTangentSpace inSurface) triangle
             idx         = V.length vertsAccum
             idxTri      = Triangle idx (idx + 1) (idx + 2)
-        in (vertsAccum ++ (V.fromList . toList $ tbnTriangle), surfaceAccum `V.snoc` idxTri)
+        in vertsAccum   `seq` 
+           surfaceAccum `seq` 
+           (vertsAccum ++ (V.fromList . toList $ tbnTriangle), surfaceAccum `V.snoc` idxTri )
 
     pntIdxs :: Vector (GeoSurface (Triangle (Int, Int, Int)))
-    pntIdxs = V.zipWith3 (V.zipWith3 (liftA3 (,,))) (posGeo^.geoSurfaces) (normGeo^.geoSurfaces) (texGeo^.geoSurfaces)
+    pntIdxs = traceShowId $ V.zipWith3 (V.zipWith3 (liftA3 (,,))) (traceShowId $ posGeo^.geoSurfaces) (traceShowId $ normGeo^.geoSurfaces) (traceShowId $ texGeo^.geoSurfaces)
 
     toPNTTri :: ( Epsilon a, Floating a) => Triangle (Int, Int, Int) -> (Triangle (Pos a), Triangle (Normal a), Triangle (Tex a))
     toPNTTri tri = ( V.unsafeIndex (posGeo^.geoVertices)  . (^._1) <$> tri
@@ -151,6 +157,12 @@ calcTangentSpaces' posGeo texGeo normGeo
             sharePosIdx i   = any (\(p,_,_) -> p==i)
             ~(V3 t b _n)    = V.sum $ V.map (uncurry triangleTangentSpace . toPTTri . toPNTTri) $ V.filter (sharePosIdx posIdx) surface
         in orthonormalize $ V3 t b normal
+
+    compatibleSurfaces = 
+        let posSurfaces  = traceShowS' "y" $ posGeo^.geoSurfaces^..traverse.to length
+            texSurfaces  = traceShowS' "y" $ texGeo^.geoSurfaces^..traverse.to length
+            normSurfaces = traceShowS' "y " $ normGeo^.geoSurfaces^..traverse.to length
+        in posSurfaces == texSurfaces && posSurfaces == normSurfaces
 {--
     normGeo{ geoVertices = V.imap calcTangentSpace ( geoVertices normGeo ) }
     where
