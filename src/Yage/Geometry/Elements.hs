@@ -148,7 +148,14 @@ instance Applicative Face where
     (Face fa fb fc fd) <*> (Face a b c d) = ( Face (fa a) (fb b) (fc c) (fd d) )
 
 
-instance (Binary e) => Binary (Triangle e)
+instance (Binary e) => Binary (Triangle e) where
+  put (Triangle a b c) = do
+    put a
+    put b
+    put c
+
+  get = Triangle <$> get <*> get <*> get
+
 instance (Binary e) => Binary (Face e)
 instance (Binary e) => Binary (Line e)
 instance (Binary e) => Binary (Point e)
