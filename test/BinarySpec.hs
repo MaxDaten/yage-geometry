@@ -32,29 +32,43 @@ point = Point $ position3 =: V3 1 2 3
 spec :: Spec
 spec = do
 --{--
-  describe "Binary Point" $ do
-    it "writes Point to Binary and reads it back" $ do
+  describe "Binary Elements" $ do
+    it "writes Point with Binary.encode and decodes it back" $ do
       (decode . encode $ point) `shouldBe` point
 
---}
+    it "writes Triangle with Binary.encode and decodes it back" $ do
+      let triangle = Triangle 10 11 12 :: Triangle Int 
+      (decode . encode $ triangle) `shouldBe` triangle
+
+    it "writes a Vector (Triangle Int) with Binary.encode and decodes it back" $ do
+      trianglesV <- V.fromList <$> genIdxTris 10 99
+      (decode . encode $ trianglesV) `shouldBe` trianglesV
+  
+    -- test-case for https://github.com/bos/vector-binary-instances/issues/4
+    {--
+    it "writes a nested Vector( Vector (Triangle Int) ) with Binary.encode and decodes it back" $ do
+      trianglesVV <- V.fromList <$> replicateM 10 (V.fromList <$> genIdxTris 10 99)
+      (decode . encode $ trianglesVV) `shouldBe` trianglesVV
+    --}
+
 --{--
   
   describe "Binary Geometry" $ do
+    it "writes Geometry.empty with Binary.encode and decodes it back" $ do
+      let e = empty :: Geometry (Vertex VT) (Triangle Int)
+      (decode . encode $ e) `shouldBe` e
+
     it "writes Geo to Binary and reads it back" $ do
       verts   <- genVertices 100
-      tris    <- genIdxTris 100 99
-      let geo = Geometry (V.fromList verts) (V.fromList tris) 
+      tris    <- replicateM 10 $ genIdxTris 10 99
+      let geo = Geometry (V.fromList verts) (V.fromList ( map (GeoSurface .V.fromList) tris))
       (decode . encode $ geo) `shouldBe` geo
 
---}
---{--
-
-  describe "Binary Geometry" $ do
     it "writes Geo to Binary file and reads it back" $ do
       verts   <- genVertices 100
-      tris    <- genIdxTris 100 99
+      tris    <- replicateM 10 $ genIdxTris 10 99
       let file = "geo.tmp"
-          geo  = Geometry (V.fromList verts) (V.fromList tris) 
+          geo  = Geometry (V.fromList verts) (V.fromList (map (GeoSurface . V.fromList) tris)) 
       encodeFile file geo
       fileGeo <- decodeFile file  
       fileGeo `shouldBe` geo
