@@ -25,9 +25,6 @@ import Data.Foldable (any, toList)
 import Data.Vector ((++))
 import qualified Data.Vector as V
 import qualified Data.Vector.Binary ()
-import Control.DeepSeq
-import Control.DeepSeq.Generics
-
 
 import Yage.Geometry.Elements as Elements
 

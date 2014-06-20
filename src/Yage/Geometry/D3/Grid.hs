@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Yage.Geometry.D3.Grid where
 
-import Yage.Prelude hiding (Index)
+import Yage.Prelude hiding (Index, left)
 import Yage.Lens
 
 import Yage.Data.List (init, tail, chunksOf)
