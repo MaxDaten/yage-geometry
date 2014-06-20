@@ -216,3 +216,8 @@ instance Storable a => Storable (Face a) where
     where ptr' = castPtr ptr
   {-# INLINE peek #-}
 
+instance NFData a => NFData (Point a)    where rnf = genericRnf
+instance NFData a => NFData (Line a)     where rnf = genericRnf
+instance NFData a => NFData (Triangle a) where rnf = genericRnf
+instance NFData a => NFData (Face a)     where rnf = genericRnf
+
