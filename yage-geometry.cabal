@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                yage-geometry
-version:             0.0.0.2
+version:             0.0.0.3
 synopsis:            geometry for 3d rendering
 description:         currently not fledged out and in a very fluid shape
 license:             MIT
@@ -72,7 +72,7 @@ library
                        DeriveTraversable
                        DeriveFoldable
 
-
+  ghc-options:          -j8
 
   If flag(perf)
     ghc-options:        -threaded -O2
@@ -97,13 +97,14 @@ test-suite geometry2d-test
       Test.Yage.Geometry.D2.Rectangle
 
   ghc-options:
-      -Wall
+      -j8 -Wall
+
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude
 
   build-depends:
       base          == 4.*
-    , yage-geometry == 0.0.0.2
+    , yage-geometry == 0.0.0.3
     , yage-contrib
     
     , hspec
@@ -119,13 +120,13 @@ test-suite binary-types
   hs-source-dirs:
       test
   ghc-options:
-      -Wall
+      -j8 -Wall
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude
 
   build-depends:
       base          == 4.*
-    , yage-geometry == 0.0.0.2
+    , yage-geometry == 0.0.0.3
     , yage-contrib
     
     , random
