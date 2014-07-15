@@ -33,13 +33,11 @@ library
 
   exposed-modules:    Yage.Geometry3D
                       Yage.Geometry
-                      Yage.Geometry.Vertex
                       Yage.Geometry.Elements
   
                       Yage.Geometry.D2.Bound
                       Yage.Geometry.D2.Rectangle
                       
-                      Yage.Geometry.D3.Basic
                       Yage.Geometry.D3.Cone
                       Yage.Geometry.D3.Cube
                       Yage.Geometry.D3.Grid
@@ -52,8 +50,8 @@ library
                     , yage-contrib            == 0.0.1.0
 
                     , linear                  == 1.10.*
-                    , lens                    == 4.2.*
-                    , vinyl                   == 0.3.*
+                    , lens                    == 4.3.*
+                    , vinyl                   == 0.4.*
                     , containers              <= 0.6
                     , vector                  >= 0.10
                     , vector-binary-instances

@@ -1,21 +1,25 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Yage.Geometry.D3.Quad where
 
 import Yage.Prelude
+import Yage.Lens
 
 import Linear
-import Yage.Geometry.D3.Basic
-import Yage.Geometry.Vertex
 import Yage.Geometry.Elements
 
 ---------------------------------------------------------------------------------------------------
--- Primitives
+data Quad v = Quad { _quadFace :: Face v }
+    deriving ( Show, Functor, Foldable, Traversable, Generic )
 
-quad :: (Floating a) => V2 a -> Primitive (Vertex (P3 pn a))
+makeLenses ''Quad
+
+quad :: (Floating a) => V2 a -> Quad (V3 a)
 quad dim = 
     let V2 x y = dim / 2.0
-        tl     = position3 =: V3 (-x)   y  0.0
-        tr     = position3 =: V3   x    y  0.0
-        br     = position3 =: V3   x  (-y) 0.0
-        bl     = position3 =: V3 (-x) (-y) 0.0
+        tl     = V3 (-x)   y  0.0
+        tr     = V3   x    y  0.0
+        br     = V3   x  (-y) 0.0
+        bl     = V3 (-x) (-y) 0.0
     in Quad $ Face tl bl br tr
 

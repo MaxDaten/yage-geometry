@@ -7,10 +7,8 @@ module Yage.Geometry3D
   , module Cone
   , module Pyramid
   , module Elems
-  , module Basic
   ) where
 
-import Yage.Geometry.D3.Basic        as Basic
 import Yage.Geometry.D3.Cube         as Cube
 import Yage.Geometry.D3.Quad         as Quad
 import Yage.Geometry.D3.Grid         as Grid

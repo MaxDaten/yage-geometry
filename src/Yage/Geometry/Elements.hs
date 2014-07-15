@@ -17,7 +17,6 @@ import Yage.Lens
 import Foreign.Storable                (Storable(..))
 import Foreign.Ptr                     (castPtr)
 
-import Yage.Geometry.Vertex
 import Data.List                       ( iterate, (!!), head )
 import Data.Binary
 import Yage.Math
@@ -98,20 +97,19 @@ flipFace (Face a b c d) = Face d c b a
 
 
 cut :: (Epsilon a, Floating a) => 
-    a -> Position3 pn a -> Triangle (Vertex (P3 pn a)) -> [Triangle (Vertex (P3 pn a))]
-cut r pos (Triangle a b c) = [Triangle a ab ac, Triangle b bc ab, Triangle c ac bc, Triangle ab bc ac]
-    where ab = pos =: (hr *^ normalize (rGet pos a + rGet pos b))
-          bc = pos =: (hr *^ normalize (rGet pos b + rGet pos c))
-          ac = pos =: (hr *^ normalize (rGet pos a + rGet pos c))
-          hr = r
+    a -> Triangle (V3 a) -> [Triangle (V3 a)]
+cut r (Triangle a b c) = [Triangle a ab ac, Triangle b bc ab, Triangle c ac bc, Triangle ab bc ac]
+    where ab = (r *^ normalize (a + b))
+          bc = (r *^ normalize (b + c))
+          ac = (r *^ normalize (a + c))
 
  
 triangulate :: (Epsilon a, Floating a) 
-            => Int -> Position3 pn a -> [Triangle (Vertex (P3 pn a))] -> [Triangle (Vertex (P3 pn a))]
-triangulate iter pos src = iterate subdivide src !! iter
+            => Int -> [Triangle (V3 a)] -> [Triangle (V3 a)]
+triangulate iter src = iterate subdivide src !! iter
     where subdivide      = concatMap cutR
-          cutR           = cut (norm . fst3 . head $ src) pos
-          fst3 (Triangle a _ _) = rGet pos a
+          cutR           = cut (norm . fst3 . head $ src)
+          fst3 (Triangle a _ _) = a
 
 
 
