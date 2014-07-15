@@ -51,7 +51,6 @@ library
 
                     , linear                  == 1.10.*
                     , lens                    == 4.3.*
-                    , vinyl                   == 0.4.*
                     , containers              <= 0.6
                     , vector                  >= 0.10
                     , vector-binary-instances

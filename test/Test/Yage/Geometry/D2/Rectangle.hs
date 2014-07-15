@@ -12,9 +12,7 @@ import Yage.Geometry.D2.Rectangle
 rectangleSpec :: Spec
 rectangleSpec = do
     -- an rectangle opend top left from the origin to the origin
-    let tl = (V2 (-2) 2)
-        br = 0
-        rect = Rectangle tl br
+    let rect = Rectangle 0 (V2 2 2)
 
 
     describe "area on a Rectangle" $ do
@@ -38,7 +36,7 @@ rectangleSpec = do
     
     describe "A point (V2) is in a Rectangle" $ do
         it "if the point lies somewhere inside the Rectangle" $ do
-            (rect `containsPoint` V2 (-1) 1 ) `shouldBe` True
+            (rect `containsPoint` V2 1 1 ) `shouldBe` True
 
         it "if the point equals a corner of the Rectangle" $ do
             (rect `containsPoint` 0) `shouldBe` True
@@ -49,17 +47,17 @@ rectangleSpec = do
 
     describe "A point (V2) is NOT in a Rectangle" $ do
         it "if the point is outside on one axis" $ do
-            (rect `containsPoint` V2 (-1) 3) `shouldBe` False
+            (rect `containsPoint` V2 (-1) 1) `shouldBe` False
 
         it "if the point is outside on both axis" $ do
             (rect `containsPoint` V2 4 5) `shouldBe` False
 
 
     describe "Rectangle A contains Rectangle B completly" $ do
-        let rectA = Rectangle tl br
+        let rectA = rect
         
-        it "if their topleft corners are equal and B is smaller" $ do
-            let rectB = Rectangle tl (V2 (-1) 1)
+        it "if their the xy1 corners are equal and B is smaller" $ do
+            let rectB = Rectangle 0 (V2 1 1)
             (rectA `containsRectangle` rectB) `shouldBe` True
         
         it "if A and B are equal" $ do
@@ -67,22 +65,22 @@ rectangleSpec = do
             (rectA `containsRectangle` rectB) `shouldBe` True
 
         it "if A is bigger and B smaller and somewhere in A without touching any borders" $ do
-            let rectB = Rectangle (V2 (-1) 1) (V2 (-1.5) 1.5)
+            let rectB = Rectangle 1 1.5
             (rectA `containsRectangle` rectB) `shouldBe` True
 
 
     describe "Rectangle A contains Rectangle B NOT completly" $ do
-        let rectA = Rectangle tl br
+        let rectA = rect
         
-        it "if their topleft corners are equal but B is bigger" $ do
-            let rectB = Rectangle tl (V2 2 (-2)) 
+        it "if their xy1 corners are equal but B is bigger" $ do
+            let rectB = Rectangle 0 3 
             (rectA `containsRectangle` rectB) `shouldBe` False
         
-        it "if their bottom-right corners are equal but B is bigger" $ do
-            let rectB = Rectangle (V2 (-3) 3) br
+        it "if their xy2 corners are equal but B is bigger" $ do
+            let rectB = Rectangle (-1) 2
             (rectA `containsRectangle` rectB) `shouldBe` False
 
         it "if B is completely somewhere else" $ do
-            let rectB = Rectangle 5 (V2 6 (-4))
+            let rectB = Rectangle 5 6
             (rectA `containsRectangle` rectB) `shouldBe` False
 
