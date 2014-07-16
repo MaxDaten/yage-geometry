@@ -20,3 +20,7 @@ geoSphere :: (Floating a, Enum a, Epsilon a)
 geoSphere iter radius =
     let Icosahedron top mid bot = icosahedron radius
     in GeoSphere $ triangulate iter $ top ++ mid ++ bot
+
+
+instance HasTriangles GeoSphere where
+  triangles = _geoSphereTris 
