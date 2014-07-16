@@ -16,35 +16,11 @@ import Yage.Geometry.Elements
 -- Primitives
 
 
-data Primitive v = 
-      Cone         { _coneMantle    :: [Triangle v]
-                   , _coneBase      :: [Triangle v]
-                   }
-    
-    | Icosahedron  { _icoTop        :: [Triangle v]
-                   , _icoMiddle     :: [Triangle v]
-                   , _icoBottom     :: [Triangle v]
-                   }
-    
-    | Pyramid      { _pyramidMantle :: [Triangle v]
-                   , _pyramidBase   :: [Triangle v] 
-                   }
-    
-    | Quad         { _quadFace      :: Face v }
-    
-    | GeoSphere    { _geoSphereTris :: [Triangle v] }
-    
-    deriving ( Show, Functor, Foldable, Traversable , Generic)
-
-makeLenses ''Primitive
-
-
 instance HasTriangles Primitive where
   triangles Cone{..}        = _coneMantle ++ _coneBase
   triangles Icosahedron{..} = _icoTop ++ _icoMiddle ++ _icoBottom
   triangles Pyramid{..}     = _pyramidMantle ++ _pyramidBase
   triangles Quad{..}        = triangles _quadFace
-  triangles GeoSphere{..}   = _geoSphereTris 
   -- triangles _ = error "invalid triangles for Primitive"
 
 

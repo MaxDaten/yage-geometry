@@ -1,23 +1,29 @@
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE FunctionalDependencies   #-}
+{-# LANGUAGE FlexibleInstances        #-}
 module Yage.Geometry.D2.Bound where
 
 import Yage.Prelude hiding (or)
 import Yage.Math
 import Yage.Lens
 
+import Data.Data
 import Data.Foldable (or)
 
 data Bound a = Bound
     { _center :: !(V2 a) 
     , _extend :: !(V2 a)
     }
-    deriving ( Eq, Show, Functor, Foldable, Traversable )
+    deriving ( Eq, Show, Functor, Foldable, Traversable
+             , Data, Typeable, Generic )
 
-makeLenses ''Bound
+makeClassy ''Bound
 
 width, height :: Lens' (Bound a) a
 width  = extend._x
 height = extend._y
+
 
 
 topLeft :: ( Num a, Fractional a ) => Lens' (Bound a) (V2 a)

@@ -1,17 +1,36 @@
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE FunctionalDependencies   #-}
+{-# LANGUAGE FlexibleInstances        #-}
 module Yage.Geometry.D2.Rectangle where
 
 import Yage.Prelude
 import Yage.Math
 import Yage.Lens
 
-data Rectangle a = Rectangle
-    { _topLeft     :: !(V2 a)   -- ^ anchor for resizing
-    , _bottomRight :: !(V2 a)
-    }
-    deriving ( Eq, Show, Functor, Foldable, Traversable )
+import Data.Data
 
-makeLenses ''Rectangle
+-- | Rectangle in right handed cartesian coordinates
+-- 
+-- x horizontal, y vertical: no additional assumptions about 
+-- the orientation of the coord-system are made (e.g. flipped y-axis)
+-- xy1 < xy2
+data Rectangle a = Rectangle
+    { _xy1   :: !(V2 a)  
+    -- ^ anchor for resizing
+    , _xy2   :: !(V2 a)
+    }
+    deriving ( Eq, Show, Functor, Foldable, Traversable
+             , Data, Typeable, Generic )
+
+makeClassy ''Rectangle
+
+class GetRectangle t a | t -> a where
+    asRectangle :: Getter t (Rectangle a)
+
+instance GetRectangle (Rectangle a) a where
+    asRectangle = id
+
 
 -----------------------------------------------------------------------------------------------------
 
@@ -23,32 +42,43 @@ width  = lens getter setter
 
 
 height :: Num a => Lens' (Rectangle a) a
-height = lens getter setter
-    where
+height = lens getter setter where
     getter rect     = rect^.extend._y
     setter rect h   = rect & extend._y .~ h
 
+{--
+topLeft :: Lens' (Rectangle a) (V2 a)
+topLeft = lens getter setter where
+    getter rect     = V2 (rect^.bottomLeft._x) (rect^.topRight._y)
+    setter rect tl  = rect & bottomLeft._x .~ tl^._x
+                           & topRight._y   .~ tl^._y
+
+bottomRight :: Lens' (Rectangle a) (V2 a)
+bottomRight = lens getter setter where
+    getter rect    = V2 (rect^.topRight._x) (rect^.bottomLeft._y) 
+    setter rect br = rect & bottomLeft._y .~ br^._y
+                          & topRight._x   .~ br^._x   
+--}
 
 
 extend :: Num a => Lens' (Rectangle a) (V2 a)
-extend = lens getter setter
-    where
-    getter rect     = rect^.bottomRight - rect^.topLeft
-    setter rect e   = rect & bottomRight .~ rect^.topLeft + e
+extend = lens getter setter where
+    getter rect     = rect^.xy2 - rect^.xy1
+    setter rect e   = rect & xy2 .~ rect^.xy1 + e
 
 
 
 center :: Fractional a => Lens' (Rectangle a) (V2 a)
-center = lens getter setter
-    where
-    getter rect     = rect^.topLeft + rect^.extend ^/ 2
-    setter rect c   = let trans = rect^.center - c in translate rect trans
+center = lens getter setter where
+    getter rect     = rect^.xy1 + rect^.extend ^/ 2
+    setter rect c   = let trans = rect^.center - c 
+                      in translate rect trans
 
 
 
 translate :: Num a => Rectangle a -> V2 a -> Rectangle a
-translate r trans = r & topLeft     +~ trans
-                      & bottomRight +~ trans
+translate r trans = r & xy1     +~ trans
+                      & xy2     +~ trans
 
 
 
@@ -84,32 +114,32 @@ compareArea a b = (area a) `compare` (area b)
 
 
 
-intersect :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Bool
-intersect a b = not $
-    a^.topLeft._x > b^.bottomRight._x ||
-    b^.topLeft._x > a^.bottomRight._x ||
+intersects :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Bool
+intersects a b = not $
+    a^.xy1._x > b^.xy2._x ||
+    b^.xy1._x > a^.xy2._x ||
     
-    a^.topLeft._y > b^.bottomRight._y ||
-    b^.topLeft._y > a^.bottomRight._y
+    a^.xy1._y > b^.xy2._y ||
+    b^.xy1._y > a^.xy2._y
 
 
 
 containsPoint :: ( Num a, Ord a ) => Rectangle a -> V2 a -> Bool
 containsPoint rect pt = not $ 
-    rect^.topLeft._x       > pt^._x   ||
-    rect^.topLeft._y       < pt^._y   ||
+    rect^.xy1._x  > pt^._x   ||
+    rect^.xy1._y  > pt^._y   ||
     
-    rect^.bottomRight._x   < pt^._x   ||
-    rect^.bottomRight._y   > pt^._y
+    rect^.xy2._x    < pt^._x   ||
+    rect^.xy2._y    < pt^._y
 
 
 
 containsRectangle :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Bool
 containsRectangle outerRect innerRect = not $
-    outerRect^.topLeft._x     > innerRect^.topLeft._x       ||
-    outerRect^.topLeft._y     < outerRect^.topLeft._y       ||
+    outerRect^.xy1._x  > innerRect^.xy1._x    ||
+    outerRect^.xy1._y  > innerRect^.xy1._y    ||
 
-    outerRect^.bottomRight._y > innerRect^.bottomRight._y   ||
-    outerRect^.bottomRight._x < innerRect^.bottomRight._x
+    outerRect^.xy2._y  < innerRect^.xy2._y      ||
+    outerRect^.xy2._x  < innerRect^.xy2._x
 
 
