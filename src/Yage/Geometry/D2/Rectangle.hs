@@ -46,20 +46,6 @@ height = lens getter setter where
     getter rect     = rect^.extend._y
     setter rect h   = rect & extend._y .~ h
 
-{--
-topLeft :: Lens' (Rectangle a) (V2 a)
-topLeft = lens getter setter where
-    getter rect     = V2 (rect^.bottomLeft._x) (rect^.topRight._y)
-    setter rect tl  = rect & bottomLeft._x .~ tl^._x
-                           & topRight._y   .~ tl^._y
-
-bottomRight :: Lens' (Rectangle a) (V2 a)
-bottomRight = lens getter setter where
-    getter rect    = V2 (rect^.topRight._x) (rect^.bottomLeft._y) 
-    setter rect br = rect & bottomLeft._y .~ br^._y
-                          & topRight._x   .~ br^._x   
---}
-
 
 extend :: Num a => Lens' (Rectangle a) (V2 a)
 extend = lens getter setter where
