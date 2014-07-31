@@ -3,6 +3,7 @@
 module Test.Yage.Geometry.D2.Rectangle where
 
 import Yage.Prelude
+import Yage.Lens
 import Yage.Math
 
 import Test.Hspec
@@ -17,7 +18,7 @@ rectangleSpec = do
 
     describe "area on a Rectangle" $ do
         it "calculates the correct area" $ do
-            area (Rectangle 0 (V2 3 5)) `shouldBe` 15
+            (Rectangle 0 (V2 3 5))^.area `shouldBe` 15
 
     
     describe "Rectangles fits" $ do

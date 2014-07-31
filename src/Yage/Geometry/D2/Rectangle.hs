@@ -73,8 +73,9 @@ resize r sz = r & extend *~ sz
 
 
 
-area :: Num a => Rectangle a -> a
-area rect = rect^.extend._x * rect^.extend._y
+area :: Num a => Getter (Rectangle a) a
+area = to calc where
+    calc rect = rect^.extend._x * rect^.extend._y
 
 
 
@@ -82,21 +83,6 @@ fits :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Bool
 fits toFitRec intoRec = 
     toFitRec^.width  <= intoRec^.width &&
     toFitRec^.height <= intoRec^.height
-
-
-
-compareCenter :: (Ord a, Fractional a) => Rectangle a -> Rectangle a -> Ordering
-compareCenter a b = (a^.center) `compare` (b^.center)
-
-
-
-compareExtend :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Ordering
-compareExtend a b = (a^.extend) `compare` (b^.extend)
-
-
-
-compareArea :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Ordering
-compareArea a b = (area a) `compare` (area b)
 
 
 
