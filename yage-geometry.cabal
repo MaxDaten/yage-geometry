@@ -55,6 +55,7 @@ library
                     , vector                  >= 0.10
                     , vector-binary-instances
                     , binary                  == 0.7.*
+                    , aeson                   == 0.8.*
 
                     , deepseq                 == 1.3.*
                     , deepseq-generics        == 0.1.*

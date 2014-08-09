@@ -9,14 +9,15 @@ import Yage.Math
 import Yage.Lens
 
 import Data.Data
+import Data.Aeson.TH
 
 -- | Rectangle in right handed cartesian coordinates
--- 
--- x horizontal, y vertical: no additional assumptions about 
+--
+-- x horizontal, y vertical: no additional assumptions about
 -- the orientation of the coord-system are made (e.g. flipped y-axis)
 -- xy1 < xy2
 data Rectangle a = Rectangle
-    { _xy1   :: !(V2 a)  
+    { _xy1   :: !(V2 a)
     -- ^ anchor for resizing
     , _xy2   :: !(V2 a)
     }
@@ -24,6 +25,7 @@ data Rectangle a = Rectangle
              , Data, Typeable, Generic )
 
 makeClassy ''Rectangle
+$(deriveJSON defaultOptions ''Rectangle)
 
 class GetRectangle t a | t -> a where
     asRectangle :: Getter t (Rectangle a)
@@ -57,7 +59,7 @@ extend = lens getter setter where
 center :: Fractional a => Lens' (Rectangle a) (V2 a)
 center = lens getter setter where
     getter rect     = rect^.xy1 + rect^.extend ^/ 2
-    setter rect c   = let trans = rect^.center - c 
+    setter rect c   = let trans = rect^.center - c
                       in translate rect trans
 
 
@@ -80,7 +82,7 @@ area = to calc where
 
 
 fits :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Bool
-fits toFitRec intoRec = 
+fits toFitRec intoRec =
     toFitRec^.width  <= intoRec^.width &&
     toFitRec^.height <= intoRec^.height
 
@@ -90,17 +92,17 @@ intersects :: ( Num a, Ord a ) => Rectangle a -> Rectangle a -> Bool
 intersects a b = not $
     a^.xy1._x > b^.xy2._x ||
     b^.xy1._x > a^.xy2._x ||
-    
+
     a^.xy1._y > b^.xy2._y ||
     b^.xy1._y > a^.xy2._y
 
 
 
 containsPoint :: ( Num a, Ord a ) => Rectangle a -> V2 a -> Bool
-containsPoint rect pt = not $ 
+containsPoint rect pt = not $
     rect^.xy1._x  > pt^._x   ||
     rect^.xy1._y  > pt^._y   ||
-    
+
     rect^.xy2._x    < pt^._x   ||
     rect^.xy2._y    < pt^._y
 
