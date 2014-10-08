@@ -70,12 +70,7 @@ library
                        DeriveTraversable
                        DeriveFoldable
 
-  ghc-options:          -j8
-
-  If flag(perf)
-    ghc-options:        -threaded -O2
-  Else
-    ghc-options:        -threaded -O0
+  ghc-options:          -threaded -j4
 
   if flag(dev)
     ghc-options:        -Wall
