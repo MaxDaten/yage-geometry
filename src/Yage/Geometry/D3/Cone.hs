@@ -19,15 +19,18 @@ data Cone v = Cone
 makeLenses ''Cone
 
 
--- | Cone with tip at (0, height, 0) and base center at origin
+-- | Cone aligned in positive y direction
+--
+-- tip at (0, 0, 0) and base center at (0, height, 0)
 cone :: (Floating a, Enum a) => Double -> Double -> Int -> Cone (V3 a)
 cone radius height divs =
     let h           = realToFrac height
         r           = realToFrac radius
         d           = realToFrac divs
-        tip         = V3 0 h 0
-        baseCenter  = V3 0 0 0
-        basev       = [ V3 (r * cos a ) 0 (r * sin a) | a <- init [0, 2 * pi / d .. 2 * pi ] ]
+        tip         = V3 0 0 0
+        baseCenter  = V3 0 h 0
+        -- define counter clock wise
+        basev       = [ V3 (r * cos a ) h (r * sin a) | a <- reverse $ init [0, 2 * pi / d .. 2 * pi ] ]
         mantle      = [ Triangle tip a b        | (a, b) <- zip basev (shift basev) ]
         base        = [ Triangle baseCenter a b | (a, b) <- zip (shift basev) basev ]
     in Cone mantle base
