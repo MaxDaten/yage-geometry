@@ -69,10 +69,17 @@ translate r trans = r & xy1     +~ trans
                       & xy2     +~ trans
 
 
-
+-- | resize with xy1 (top/left) as anchor
 resize :: Num a => Rectangle a -> V2 a -> Rectangle a
 resize r sz = r & extend *~ sz
 
+
+-- | rescale both coordinates.
+-- this is for e.g. useful if you want to transform from
+-- a normalized to a destinct space
+rescale :: Num a => Rectangle a -> V2 a -> Rectangle a
+rescale r sz = r & xy1 *~ sz
+                 & xy2 *~ sz
 
 
 area :: Num a => Getter (Rectangle a) a
