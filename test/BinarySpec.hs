@@ -9,7 +9,7 @@ import Test.Hspec
 
 import Data.Vinyl.Instances ()
 import Data.Binary
-import qualified Data.Vector as V 
+import qualified Data.Vector as V
 import Yage.Geometry
 
 import System.Random
@@ -27,13 +27,13 @@ spec = do
       (decode . encode $ point) `shouldBe` point
 
     it "writes Triangle with Binary.encode and decodes it back" $ do
-      let triangle = Triangle 10 11 12 :: Triangle Int 
+      let triangle = Triangle 10 11 12 :: Triangle Int
       (decode . encode $ triangle) `shouldBe` triangle
 
     it "writes a Vector (Triangle Int) with Binary.encode and decodes it back" $ do
       trianglesV <- V.fromList <$> genIdxTris 10 99
       (decode . encode $ trianglesV) `shouldBe` trianglesV
-  
+
     -- test-case for https://github.com/bos/vector-binary-instances/issues/4
     {--
     it "writes a nested Vector( Vector (Triangle Int) ) with Binary.encode and decodes it back" $ do
@@ -42,7 +42,7 @@ spec = do
     --}
 
 --{--
-  
+
   describe "Binary Geometry" $ do
     it "writes Geometry.empty with Binary.encode and decodes it back" $ do
       let e = empty :: Geometry (V3 Float) (Triangle Int)
@@ -58,50 +58,19 @@ spec = do
       verts   <- genVertices 100
       tris    <- replicateM 10 $ genIdxTris 10 99
       let file = "geo.tmp"
-          geo  = Geometry (V.fromList verts) (V.fromList (map (GeoSurface . V.fromList) tris)) 
+          geo  = Geometry (V.fromList verts) (V.fromList (map (GeoSurface . V.fromList) tris))
       encodeFile file geo
-      fileGeo <- decodeFile file  
+      fileGeo <- decodeFile file
       fileGeo `shouldBe` geo
       removeFile file
 
---}
-{--
-
-  describe "Binary YGM" $ do
-    it "writes YGM to Binary file and reads it back" $ do
-      verts   <- genVertices 100
-      tris    <- genIdxTris 100 99
-      let file = "ygm.tmp"
-          geo  = Geometry (V.fromList verts) (V.fromList tris) 
-      encodeFile file $ YGM "somename" geo
-      fileYGM <- decodeFile file
-      ygmModel fileYGM `shouldBe` geo
-      ygmName fileYGM `shouldBe` "somename"
-      removeFile file
-
---}
-{--
-
-  describe "Binary YGM" $ do
-    it "write YGM with generated tangents to Binary file and read it back" $ do
-      verts   <- genVertices 100
-      tris    <- genIdxTris 100 99
-      let file = "ygm.tmp"
-          geo  = addTangents $ Geometry (V.fromList verts) (V.fromList tris) 
-      encodeFile file $ YGM "somename" geo
-      fileYGM <- decodeFile file
-      ygmModel fileYGM `shouldBe` geo
-      ygmName fileYGM `shouldBe` "somename"
-      removeFile file
-
---}
 
 genVertices :: Int -> IO ([V3 Float])
 genVertices cnt = replicateM cnt $ V3 <$> randomIO <*> randomIO <*> randomIO
 
 genIdxTris :: Int -> Int -> IO ([Triangle Int])
-genIdxTris cnt maxIx = 
+genIdxTris cnt maxIx =
   replicateM cnt $ Triangle <$> randomRIO (0, maxIx)
                             <*> randomRIO (0, maxIx)
                             <*> randomRIO (0, maxIx)
-    
+
