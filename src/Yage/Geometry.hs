@@ -1,32 +1,32 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE TupleSections  #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Yage.Geometry
     ( module Yage.Geometry
     , module Elements
     ) where
 
-import Yage.Prelude hiding (sum, toList, any, (++))
-import Yage.Lens
-import Yage.Math
+import           Yage.Lens
+import           Yage.Math
+import           Yage.Prelude           hiding (any, sum, toList, (++))
 
-import Control.Applicative (liftA3)
-import Data.Binary
-import Data.Foldable (any, toList)
-import Data.Vector ((++))
-import qualified Data.Vector as V
-import qualified Data.Vector.Binary ()
+import           Control.Applicative    (liftA3)
+import           Data.Binary
+import           Data.Foldable          (any, toList)
+import           Data.Vector            ((++))
+import qualified Data.Vector            as V
+import qualified Data.Vector.Binary     ()
 
-import Yage.Geometry.Elements as Elements
+import           Yage.Geometry.Elements as Elements
 
 -- wrapping neccassry because of ghc bug
 -- https://github.com/bos/vector-binary-instances/issues/4
@@ -49,8 +49,8 @@ type TriGeo = Geometry (Triangle Int)
 makeSimpleTriGeo :: Vector v -> TriGeo v
 makeSimpleTriGeo verts = Geometry verts simpleIxs
     where
-        triCnt    = V.length verts `div` 3 
-        simpleIxs = V.singleton . GeoSurface $ V.zipWith3 Triangle 
+        triCnt    = V.length verts `div` 3
+        simpleIxs = V.singleton . GeoSurface $ V.zipWith3 Triangle
                                         (V.generate triCnt (3*))
                                         (V.generate triCnt (\i -> i*3+1))
                                         (V.generate triCnt (\i -> i*3+2))
@@ -65,7 +65,7 @@ empty = Geometry V.empty V.empty
 
 {--
 indexedSurface :: Eq v => Surface (Triangle v) -> TriGeo v
-indexedSurface triSurf = 
+indexedSurface triSurf =
     let surfVec = V.fromList $ nub $ concatMap vertices $ getSurface triSurf
     in Geometry { geoVerices  = undefined
                 , geoElements = undefined
@@ -80,25 +80,25 @@ type TBN a     = M33 a
 
 
 -- | calc tangent spaces for each triangle. averages for normals and tangents are calculated on surfaces
-calcTangentSpaces :: ( Epsilon a, Floating a ) => 
+calcTangentSpaces :: ( Epsilon a, Floating a ) =>
     TriGeo (Pos a) ->
-    TriGeo (Tex a) -> 
+    TriGeo (Tex a) ->
     TriGeo (TBN a)
-calcTangentSpaces posGeo texGeo = 
+calcTangentSpaces posGeo texGeo =
     calcTangentSpaces' posGeo texGeo $ calcNormals posGeo
 
 
 
 calcNormals :: ( Epsilon a, Floating a )
             => TriGeo (Pos a) -> TriGeo (Normal a)
-calcNormals geo = uncurry Geometry normalsOverSurfaces 
+calcNormals geo = uncurry Geometry normalsOverSurfaces
     where
     normalsOverSurfaces = V.foldl' normalsForSurface (V.empty, V.empty) (geo^.geoSurfaces)
-    
-    normalsForSurface (normsAccum, surfacesAccum) (GeoSurface surface) = 
+
+    normalsForSurface (normsAccum, surfacesAccum) (GeoSurface surface) =
         let (normVerts, normedSurface) = V.foldl' (normalsForTriangle surface) (normsAccum, V.empty) surface
         in (normVerts, surfacesAccum `V.snoc` (GeoSurface normedSurface) )
-    
+
     normalsForTriangle inSurface (vertsAccum, surfaceAccum) triangle =
         let normedTri = fmap (calcAvgNorm inSurface) triangle
             idx       = V.length vertsAccum
@@ -116,7 +116,7 @@ calcNormals geo = uncurry Geometry normalsOverSurfaces
 calcTangentSpaces' :: forall a. ( Epsilon a, Floating a ) =>
     TriGeo (Pos a) ->
     TriGeo (Tex a) ->
-    TriGeo (Normal a) -> 
+    TriGeo (Normal a) ->
     TriGeo (TBN a)
 calcTangentSpaces' posGeo texGeo normGeo
     | not compatibleSurfaces = error "calcTangentSpaces': surfaces doesn't match"
@@ -125,23 +125,23 @@ calcTangentSpaces' posGeo texGeo normGeo
 
     where
     tbnOverSurfaces = V.foldl' tbnForSurface (V.empty, V.empty) pntIdxs
-    
-    tbnForSurface (tbnAccum, surfacesAccum) (GeoSurface geoSurface) = 
+
+    tbnForSurface (tbnAccum, surfacesAccum) (GeoSurface geoSurface) =
         let (tbnVerts, tbnSurface) = V.foldl' (tbnForTriangle geoSurface) (tbnAccum, V.empty) geoSurface
         in tbnVerts      `seq`
            surfacesAccum `seq`
            (tbnVerts, surfacesAccum `V.snoc` (GeoSurface tbnSurface) )
 
-    tbnForTriangle inSurface (vertsAccum, surfaceAccum) triangle = 
+    tbnForTriangle inSurface (vertsAccum, surfaceAccum) triangle =
         let tbnTriangle = fmap (calcTangentSpace inSurface) triangle
             idx         = V.length vertsAccum
             idxTri      = Triangle idx (idx + 1) (idx + 2)
-        in vertsAccum   `seq` 
-           surfaceAccum `seq` 
+        in vertsAccum   `seq`
+           surfaceAccum `seq`
            (vertsAccum ++ (V.fromList . toList $ tbnTriangle), surfaceAccum `V.snoc` idxTri )
 
     pntIdxs :: Vector (GeoSurface (Triangle (Int, Int, Int)))
-    pntIdxs = 
+    pntIdxs =
         let mkSurface (GeoSurface p) (GeoSurface n) (GeoSurface t) = GeoSurface $ V.zipWith3 (liftA3 (,,)) p n t
         in V.zipWith3 mkSurface (posGeo^.geoSurfaces) ( normGeo^.geoSurfaces) ( texGeo^.geoSurfaces)
 
@@ -149,7 +149,7 @@ calcTangentSpaces' posGeo texGeo normGeo
     toPNTTri tri = ( (V.!) (posGeo^.geoVertices)  . (^._1) <$> tri
                    , (V.!) (normGeo^.geoVertices) . (^._2) <$> tri
                    , (V.!) (texGeo^.geoVertices)  . (^._3) <$> tri
-                   ) 
+                   )
 
     calcTangentSpace :: ( Epsilon a, Floating a) => V.Vector (Triangle (Int, Int, Int)) -> (Int, Int, Int) -> M33 a
     calcTangentSpace geoSurface (posIdx, normIdx, _texIdx) =
@@ -160,7 +160,7 @@ calcTangentSpaces' posGeo texGeo normGeo
             ~(V3 t b _n)    = V.sum $ V.map (uncurry triangleTangentSpace . toPTTri . toPNTTri) $ V.filter (sharePosIdx posIdx) geoSurface
         in orthonormalize $ V3 t b normal
 
-    compatibleSurfaces = 
+    compatibleSurfaces =
         let posSurfaces  = posGeo^.geoSurfaces^..traverse.to (length.unGeoSurface)
             texSurfaces  = texGeo^.geoSurfaces^..traverse.to (length.unGeoSurface)
             normSurfaces = normGeo^.geoSurfaces^..traverse.to (length.unGeoSurface)
