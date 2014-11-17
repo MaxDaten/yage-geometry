@@ -70,7 +70,7 @@ library
                        DeriveTraversable
                        DeriveFoldable
 
-  ghc-options:          -threaded -j4 -O2
+  ghc-options:          -threaded -j4 -O2 -funbox-strict-fields
   ghc-prof-options:     -rtsopts -Wall -prof -auto-all -caf-all
 
 
