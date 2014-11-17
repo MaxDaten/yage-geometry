@@ -71,6 +71,8 @@ library
                        DeriveFoldable
 
   ghc-options:          -threaded -j4
+  ghc-prof-options:     -rtsopts -Wall -prof -auto-all -caf-all
+
 
   if flag(dev)
     ghc-options:        -Wall

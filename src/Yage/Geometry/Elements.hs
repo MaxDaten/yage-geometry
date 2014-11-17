@@ -1,25 +1,26 @@
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Yage.Geometry.Elements where
 
-import Yage.Prelude             hiding (head)
-import Yage.Lens
+import           Yage.Lens
+import           Yage.Prelude     hiding (head, mapM_)
 
-import Foreign.Storable                (Storable(..))
-import Foreign.Ptr                     (castPtr)
+import           Data.Foldable    (mapM_)
+import           Foreign.Ptr      (castPtr)
+import           Foreign.Storable (Storable (..))
 
-import Data.List                       ( iterate, (!!), head )
-import Data.Binary
-import Yage.Math
+import           Data.Binary
+import           Data.List        (head, iterate, (!!))
+import           Yage.Math
 -- import Linear.Binary
 
 
@@ -77,7 +78,7 @@ class HasSurfaces p where
 
 triangleNormal :: (Epsilon a, Floating a)
                => Triangle (V3 a) -> V3 a
-triangleNormal = normalize . triangleUnnormal 
+triangleNormal = normalize . triangleUnnormal
 
 
 -- | area weighted triangle normal (the length is proportional to the area of the triangle)
@@ -96,15 +97,15 @@ flipFace (Face a b c d) = Face d c b a
 
 
 
-cut :: (Epsilon a, Floating a) => 
+cut :: (Epsilon a, Floating a) =>
     a -> Triangle (V3 a) -> [Triangle (V3 a)]
 cut r (Triangle a b c) = [Triangle a ab ac, Triangle b bc ab, Triangle c ac bc, Triangle ab bc ac]
     where ab = (r *^ normalize (a + b))
           bc = (r *^ normalize (b + c))
           ac = (r *^ normalize (a + c))
 
- 
-triangulate :: (Epsilon a, Floating a) 
+
+triangulate :: (Epsilon a, Floating a)
             => Int -> [Triangle (V3 a)] -> [Triangle (V3 a)]
 triangulate iter src = iterate subdivide src !! iter
     where subdivide      = concatMap cutR
@@ -117,7 +118,7 @@ triangleTangentSpace :: (Epsilon a, Floating a) => Triangle (V3 a) -> Triangle (
 triangleTangentSpace pos tex =
     let Triangle pos0 pos1 pos2 = pos
         Triangle st0 st1 st2    = tex
-        
+
         deltaPos1 = pos1 - pos0
         deltaPos2 = pos2 - pos0
         deltaUV1  = st1 - st0
@@ -131,7 +132,7 @@ triangleTangentSpace pos tex =
 
 instance Applicative Point where
     pure v = Point v
-    (Point f) <*> (Point a) = Point (f a)  
+    (Point f) <*> (Point a) = Point (f a)
 
 instance Applicative Line where
     pure v = Line v v
@@ -147,12 +148,11 @@ instance Applicative Face where
 
 
 instance (Binary e) => Binary (Triangle e) where
-  put (Triangle a b c) = do
-    put a
-    put b
-    put c
+  put = mapM_ put
+  {-# INLINE put #-}
 
-  get = Triangle <$> get <*> get <*> get
+  get = liftM3 Triangle get get get
+  {-# INLINE get #-}
 
 instance (Binary e) => Binary (Face e)
 instance (Binary e) => Binary (Line e)
