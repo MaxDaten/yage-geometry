@@ -151,7 +151,7 @@ instance (Binary e) => Binary (Triangle e) where
   put = mapM_ put
   {-# INLINE put #-}
 
-  get = liftM3 Triangle get get get
+  get = Triangle <$> get <*> get <*> get
   {-# INLINE get #-}
 
 instance (Binary e) => Binary (Face e)
