@@ -4,23 +4,23 @@ module Yage.Geometry.D3.Icosahedron where
 
 import Yage.Prelude
 import Yage.Lens
-import Yage.Math
+import Yage.Math hiding (transpose)
 
 import Yage.Data.List (shift, init, transpose)
 
 import Yage.Geometry.Elements
 
-data Icosahedron v = Icosahedron 
+data Icosahedron v = Icosahedron
     { _icoTop        :: [Triangle v]
     , _icoMiddle     :: [Triangle v]
     , _icoBottom     :: [Triangle v]
     } deriving ( Show, Functor, Foldable, Traversable, Generic )
 
 makeLenses ''Icosahedron
-    
+
 
 icosahedron :: (Floating a, Enum a) => Double -> Icosahedron (V3 a)
-icosahedron radius = Icosahedron top middle bottom 
+icosahedron radius = Icosahedron top middle bottom
     where r             = realToFrac radius
           north         = V3 0   r  0
           south         = V3 0 (-r) 0

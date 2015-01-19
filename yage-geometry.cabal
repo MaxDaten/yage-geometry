@@ -47,10 +47,10 @@ library
                       Yage.Geometry.D3.Sphere
                          
   build-depends:      base                    >= 4.7       && < 5
-                    , yage-contrib            == 0.0.2.0
+                    , yage-contrib            == 0.1.0.0
 
-                    , linear                  == 1.10.*
-                    , lens                    == 4.3.*
+                    , linear                  >= 1.15
+                    , lens                    >= 4.6
                     , containers              <= 0.6
                     , vector                  >= 0.10
                     , vector-binary-instances
@@ -146,7 +146,7 @@ executable elements-binary-criterion
       base          == 4.*
     , yage-geometry == 0.0.0.3
     , yage-contrib
-    , criterion
+    , criterion     >= 1.0
 
     , vector        == 0.10.*
     
