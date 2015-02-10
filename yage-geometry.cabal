@@ -86,7 +86,7 @@ test-suite geometry2d-test
       test
   
   main-is:
-      Geometry2d.hs
+      geometry2d.hs
 
   other-modules:
       Test.Yage.Geometry.D2.Rectangle

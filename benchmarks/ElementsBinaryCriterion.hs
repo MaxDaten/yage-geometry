@@ -1,7 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 module Main where
 
-import           Linear.DeepSeq ()
 import           Yage.Math
 import           Yage.Prelude
 
