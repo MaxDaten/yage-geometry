@@ -75,7 +75,7 @@ library
 
 
   if flag(dev)
-    ghc-options:        -Wall
+    ghc-options:        -O -Wall -rtsopts
 
 
 
